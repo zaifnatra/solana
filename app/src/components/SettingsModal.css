@@ -1,25 +1,52 @@
-/* Dark, Moody Theme for Settings */
-.settings-container {
-    min-height: 100vh;
-    padding-bottom: 80px;
-    background: transparent;
-    color: white;
+/* Modal Overlay */
+.settings-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
+    z-index: 1000;
 }
 
-.settings-card {
-    width: 90%;
-    max-width: 500px;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(10px);
+/* Modal Content */
+.settings-modal-content {
+    background: rgba(20, 20, 20, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
     padding: 2rem;
-    margin-top: 2rem;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    color: white;
 }
 
+/* Close Button */
+.settings-close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 5px;
+}
+
+.settings-close-btn:hover {
+    color: white;
+}
+
+/* Reuse existing styles */
 .settings-section {
     margin-bottom: 2.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);

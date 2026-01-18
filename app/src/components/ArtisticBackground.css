@@ -1,0 +1,161 @@
+/* Base container */
+.artistic-bg-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #050505;
+    z-index: 0;
+    /* Visible now, below relative content */
+    overflow: hidden;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 
+   Geometric Rings
+   More visible, "architectural" feel
+*/
+.geo-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 1);
+    /* PURE WHITE 100% */
+    /* Clearly visible thin lines */
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.ring-1 {
+    width: 40vw;
+    height: 40vw;
+    border-color: rgba(255, 255, 255, 1);
+    /* PURE WHITE */
+    border-width: 3px;
+    animation: rotate-cw 60s linear infinite;
+}
+
+/* Dashed ring */
+.ring-2 {
+    width: 60vw;
+    height: 60vw;
+    border: 4px dashed rgba(255, 255, 255, 1);
+    /* PURE WHITE */
+    animation: rotate-ccw 80s linear infinite;
+}
+
+.ring-3 {
+    width: 90vw;
+    height: 90vw;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    animation: pulse 10s ease-in-out infinite;
+}
+
+/* 
+   Large "Planet" or "Sun" outline 
+   Off-center to create composition
+*/
+.geo-circle-filled {
+    position: absolute;
+    width: 25vw;
+    height: 25vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    /* Brighter fill */
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    top: 20%;
+    left: 20%;
+    filter: blur(2px);
+    animation: float-slow 20s ease-in-out infinite;
+}
+
+/* 
+   Lines / Grid 
+   Angled lines crossing the screen
+*/
+.line-cross {
+    position: absolute;
+    width: 150vw;
+    height: 4px;
+    /* Thicker */
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 1), transparent);
+    /* Pure White */
+    top: 50%;
+    left: -25%;
+    transform: rotate(45deg);
+    animation: shine-line 10s ease-in-out infinite;
+}
+
+.line-cross-2 {
+    position: absolute;
+    width: 150vw;
+    height: 4px;
+    /* Thicker */
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 1), transparent);
+    /* Pure White */
+    top: 50%;
+    left: -25%;
+    transform: rotate(-25deg);
+    animation: shine-line 15s ease-in-out infinite reverse;
+}
+
+
+@keyframes rotate-cw {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes rotate-ccw {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(-360deg);
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+}
+
+@keyframes float-slow {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        transform: translate(20px, -20px);
+    }
+}
+
+@keyframes shine-line {
+
+    0%,
+    100% {
+        opacity: 0.2;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}

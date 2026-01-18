@@ -1,0 +1,40 @@
+/* Square Pattern Background */
+.square-pattern-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.4) 1px, transparent 1px);
+    background-size: 50px 50px;
+    /* Slightly larger squares for better visibility */
+    /* Size of the squares */
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Optional: Add a vignette to soften edges */
+.square-pattern-bg::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, transparent 40%, #000 100%);
+}
+
+/* Token Grid Layout */
+.tokens-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    /* Responsive side-by-side */
+    gap: 20px;
+    padding: 20px;
+    padding-bottom: 100px;
+    max-width: 1200px;
+    margin: 0 auto;
+}

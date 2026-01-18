@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Header from '../components/Header';
 import { supabase } from '../supabaseClient';
-import bgVideo from '../assets/fishglitch.1.mov';
+import BackgroundVideo from '../components/BackgroundVideo'; // Import BackgroundVideo
 import ArtistCard from '../components/ArtistCard'; // Import ArtistCard
 import './SearchPage.css';
 
@@ -21,42 +21,71 @@ export default function SearchPage() {
         setLoading(true);
         setErrorMsg(null);
         try {
-            // Fetch artists with their profile data
-            let queryBuilder = supabase
-                .from('artists')
-                .select(`
-                    *,
-                    profiles (
-                        username,
-                        first_name,
-                        last_name,
-                        avatar_url,
-                        wallet_address
-                    )
-                `)
-                .limit(20);
+            // Hardcoded mocked data for Discover Page
+            const mockArtists = [
+                {
+                    id: 'mock-1',
+                    name: 'Neo Beat',
+                    username: '@neo_beat',
+                    image: '/images/artist_1.png',
+                    genre: 'Electronic',
+                    description: 'Futuristic synthwaves and neon rhythms.',
+                    supporters: 1240,
+                    sharePrice: 2.5,
+                    walletAddress: 'mock-wallet-1',
+                    mintAddress: 'mock-mint-1'
+                },
+                {
+                    id: 'mock-2',
+                    name: 'Velvet Soul',
+                    username: '@velvet_soul',
+                    image: '/images/artist_2.png',
+                    genre: 'R&B',
+                    description: 'Soulful melodies with a modern twist.',
+                    supporters: 850,
+                    sharePrice: 1.8,
+                    walletAddress: 'mock-wallet-2',
+                    mintAddress: 'mock-mint-2'
+                },
+                {
+                    id: 'mock-3',
+                    name: 'City Flow',
+                    username: '@city_flow',
+                    image: '/images/artist_3.png',
+                    genre: 'Hip Hop',
+                    description: 'Urban stories told through heavy beats.',
+                    supporters: 3200,
+                    sharePrice: 5.0,
+                    walletAddress: 'mock-wallet-3',
+                    mintAddress: 'mock-mint-3'
+                },
+                {
+                    id: 'mock-4',
+                    name: 'Vibe Queen',
+                    username: '@vibe_queen',
+                    image: '/images/artist_4.png',
+                    genre: 'House',
+                    description: 'Electric energy for the digital dancefloor.',
+                    supporters: 420,
+                    sharePrice: 0.9,
+                    walletAddress: 'mock-wallet-4',
+                    mintAddress: 'mock-mint-4'
+                },
+                {
+                    id: 'mock-5',
+                    name: 'Blue Note',
+                    username: '@blue_sax',
+                    image: '/images/artist_5.png',
+                    genre: 'Jazz',
+                    description: 'Smooth jazz fusion in a smoky atmosphere.',
+                    supporters: 1500,
+                    sharePrice: 3.2,
+                    walletAddress: 'mock-wallet-5',
+                    mintAddress: 'mock-mint-5'
+                }
+            ];
 
-            // Note: Supabase ILIKE on joined tables is tricky, usually filter client-side or use complex RPC.
-            // For now, simpler to fetch all artists (assuming small volume) and filter client side,
-            // OR searching on the 'artists' genre field. 
-            // If searchTerm is provided, we might want to search profiles, but we need the Artist row.
-
-            const { data, error } = await queryBuilder;
-
-            if (error) throw error;
-
-            let formatted = data.map(item => ({
-                id: item.artist_id,
-                name: `${item.profiles?.first_name || ''} ${item.profiles?.last_name || ''}`,
-                username: item.profiles?.username,
-                image: item.profiles?.avatar_url,
-                genre: item.genre,
-                description: "Artist",
-                supporters: 0,
-                sharePrice: 0.001, // Mock price for now or fetch from curve
-                walletAddress: item.profiles?.wallet_address || item.profiles?.id, // Need address for trading
-                mintAddress: item.mint_address
-            }));
+            let formatted = mockArtists;
 
             if (searchTerm) {
                 const lower = searchTerm.toLowerCase();
@@ -85,9 +114,7 @@ export default function SearchPage() {
     return (
         <div className="search-container">
             {/* Background Video Reuse */}
-            <video autoPlay loop muted playsInline className="app-bg-video">
-                <source src={bgVideo} type="video/mp4" />
-            </video>
+            <BackgroundVideo />
 
             {/* Reusable Header */}
             <Header title="Discover" />
@@ -110,13 +137,7 @@ export default function SearchPage() {
             </div>
 
             <div className="search-results" style={{ paddingBottom: '100px' }}>
-                {/* DEBUG SECTION */}
-                <div style={{ padding: '10px', background: '#220', color: '#ff0', fontSize: '0.8rem', marginBottom: '10px', border: '1px solid #aa0' }}>
-                    <p>DEBUG INFO:</p>
-                    <p>Loading: {loading ? 'Yes' : 'No'}</p>
-                    <p>Results Count: {results ? results.length : 'null'}</p>
-                    {errorMsg && <p style={{ color: 'red' }}>Error: {errorMsg}</p>}
-                </div>
+                {/* Debug info removed */}
 
                 {loading && <p style={{ textAlign: 'center', color: '#888' }}>Searching...</p>}
 

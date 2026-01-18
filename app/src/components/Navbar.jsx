@@ -34,6 +34,15 @@ export default function Navbar() {
                 </svg>
                 <span>Friends</span>
             </Link>
+
+            {/* 4. My Tokens (Coins/Wallet) */}
+            <Link to="/my-tokens" className={`nav-item ${location.pathname === '/my-tokens' ? 'active' : ''}`}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 12V8H6C4.89543 8 4 8.89543 4 10V18C4 19.1046 4.89543 20 6 20H20C21.1046 20 22 19.1046 22 18V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M22 12C22 11.4477 21.5523 11 21 11H18C17.4477 11 17 11.4477 17 12V13C17 13.5523 17.4477 14 18 14H21C21.5523 14 22 13.5523 22 13V12Z" fill="currentColor" />
+                </svg>
+                <span>Wallet</span>
+            </Link>
         </nav>
     );
 }

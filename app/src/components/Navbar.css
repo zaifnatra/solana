@@ -5,13 +5,18 @@
     width: 100%;
     height: 60px;
     background-color: #000;
-    /* Strict black */
-    /* border-top: 1px solid #222;  Optional subtle border */
     display: flex;
     justify-content: space-around;
     align-items: center;
     z-index: 1000;
     padding-bottom: env(safe-area-inset-bottom);
+    margin: 0;
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    /* Visual distinction */
+    outline: none;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.8);
+    /* a bit stronger shadow */
 }
 
 .nav-item {

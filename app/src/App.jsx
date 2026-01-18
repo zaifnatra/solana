@@ -9,7 +9,7 @@ import OnboardingPage from './pages/OnboardingPage'
 import MintNFTPage from './pages/MintNFTPage'
 import ProfilePage from './pages/ProfilePage'
 import FriendsPage from './pages/FriendsPage'
-import SettingsPage from './pages/SettingsPage'
+import MyTokensPage from './pages/MyTokensPage'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 import { useConnection, useAnchorWallet } from "@solana/wallet-adapter-react";
@@ -161,11 +161,12 @@ function App() {
           <Route path="/" element={isOnboarded ? <SearchPage /> : <Navigate to="/onboarding" />} />
 
           <Route path="/profile" element={isOnboarded ? <ProfilePage /> : <Navigate to="/onboarding" />} />
-          <Route path="/settings" element={isOnboarded ? <SettingsPage /> : <Navigate to="/onboarding" />} />
           <Route path="/friends" element={isOnboarded ? <FriendsPage /> : <Navigate to="/onboarding" />} />
+
 
           <Route path="/register" element={isOnboarded ? <RegisterPage /> : <Navigate to="/onboarding" />} />
           <Route path="/mint-nft" element={isOnboarded ? <MintNFTPage /> : <Navigate to="/onboarding" />} />
+          <Route path="/my-tokens" element={isOnboarded ? <MyTokensPage /> : <Navigate to="/onboarding" />} />
         </Routes>
       </div>
     </BrowserRouter>

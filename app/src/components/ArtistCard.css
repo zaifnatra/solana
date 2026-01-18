@@ -1,0 +1,115 @@
+.artist-card {
+    display: flex;
+    height: 220px;
+    background: rgba(30, 30, 30, 0.6);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    cursor: pointer;
+    position: relative;
+
+    /* The "Lights" behind the card - Base Glow */
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8),
+        0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+.artist-card:hover {
+    transform: translateY(-5px);
+    /* Intensified Glow on Hover */
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 1),
+        0 0 30px rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Optional: faint gradient border via pseudo-element for "Cyberpunk" feel? 
+   Let's keep it clean first as per user request just "lights behind". 
+   A strong back glow is good. */
+
+.artist-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 16px;
+    box-shadow: 0 0 60px rgba(100, 200, 255, 0.1);
+    /* Ambient blue light */
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.artist-card:hover::before {
+    opacity: 1;
+}
+
+/* Custom Number Input Wrapper */
+.custom-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 0;
+    height: 36px;
+    width: 80px;
+    overflow: hidden;
+}
+
+/* Hide native spin buttons */
+.custom-number-input::-webkit-inner-spin-button,
+.custom-number-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.custom-number-input {
+    -moz-appearance: textfield;
+    appearance: textfield;
+    background: transparent;
+    border: none;
+    color: white;
+    width: 56px;
+    /* Leave room for buttons */
+    height: 100%;
+    text-align: center;
+    font-size: 1rem;
+    outline: none;
+    padding: 0;
+}
+
+/* Spin Buttons Column */
+.spin-btn-col {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 24px;
+    border-left: 1px solid #444;
+}
+
+.spin-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.2s, color 0.2s;
+    line-height: 1;
+}
+
+.spin-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.spin-btn:first-child {
+    border-bottom: 1px solid #444;
+}

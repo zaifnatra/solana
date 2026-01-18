@@ -1,12 +1,10 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Header from '../components/Header';
-import bgVideo from '../assets/fishglitch.1.mov'; // Consistent background
-import './SettingsPage.css';
+import './SettingsModal.css';
 
-export default function SettingsPage() {
+export default function SettingsModal({ onClose }) {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -21,6 +19,12 @@ export default function SettingsPage() {
 
     useEffect(() => {
         getProfile();
+        // Disable body scroll when modal is open
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = 'unset';
+            console.log("Modal unmounting, cleanup scroll");
+        };
     }, []);
 
     const getProfile = async () => {
@@ -109,6 +113,7 @@ export default function SettingsPage() {
 
             // Sign out
             await supabase.auth.signOut();
+            onClose(); // Close modal
             navigate('/');
         } catch (error) {
             alert('Error deleting account: ' + error.message);
@@ -117,15 +122,13 @@ export default function SettingsPage() {
         }
     };
 
-    return (
-        <div className="settings-container">
-            <video autoPlay loop muted playsInline className="app-bg-video">
-                <source src={bgVideo} type="video/mp4" />
-            </video>
+    return createPortal(
+        <div className="settings-modal-overlay" onClick={onClose}>
+            <div className="settings-modal-content" onClick={e => e.stopPropagation()}>
+                <button className="settings-close-btn" onClick={onClose}>&times;</button>
 
-            <Header title="Settings" />
+                <h2 style={{ marginBottom: '20px', borderBottom: '1px solid #333', paddingBottom: '10px' }}>Settings</h2>
 
-            <div className="settings-card">
                 {/* 1. Profile Picture */}
                 <div className="settings-section">
                     <div className="section-title">🖼️ Change Profile Picture</div>
@@ -175,8 +178,7 @@ export default function SettingsPage() {
                     </p>
                 </div>
             </div>
-
-            <Navbar />
-        </div>
+        </div>,
+        document.body
     );
 }

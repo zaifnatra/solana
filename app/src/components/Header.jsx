@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import SettingsModal from './SettingsModal';
 import './Header.css';
 
 export default function Header({ title }) {
     const [showDropdown, setShowDropdown] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
 
     const handleLogout = async () => {
         const { error } = await supabase.auth.signOut();
@@ -16,14 +18,13 @@ export default function Header({ title }) {
         <header className="app-header">
             <h1 className="header-title">{title || 'Social Hub'}</h1>
 
-            <div className="header-actions">
-                <div style={{ marginRight: '10px' }}>
-                    <WalletMultiButton />
-                </div>
+            <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <WalletMultiButton />
                 <div className="profile-menu-container">
                     <button
                         className="profile-icon-btn"
                         onClick={() => setShowDropdown(!showDropdown)}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
@@ -34,7 +35,7 @@ export default function Header({ title }) {
 
                     {showDropdown && (
                         <div className="profile-dropdown">
-                            <div className="dropdown-item" onClick={() => window.location.href = '/settings'}>Settings</div>
+                            <div className="dropdown-item" onClick={() => { setShowSettings(true); setShowDropdown(false); }}>Settings</div>
                             <div className="dropdown-item">Help</div>
                             <div className="dropdown-divider"></div>
                             <div className="dropdown-item logout" onClick={handleLogout}>Log Out</div>
@@ -47,6 +48,9 @@ export default function Header({ title }) {
             {showDropdown && (
                 <div className="dropdown-backdrop" onClick={() => setShowDropdown(false)}></div>
             )}
+
+            {/* Settings Modal */}
+            {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
         </header>
     );
 }

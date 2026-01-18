@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Header from '../components/Header';
-import bgVideo from '../assets/fishglitch.1.mov'; // Reuse background
+import ArtisticBackground from '../components/ArtisticBackground'; // New Artistic BG
 import { supabase } from '../supabaseClient';
 import { useArtistProgram } from '../hooks/useArtistProgram';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -35,7 +35,7 @@ export default function ProfilePage() {
                     last_name: "Creator",
                     username: "test_creator",
                     role: 'artist', // HARDCODED ROLE
-                    avatar_url: null,
+                    avatar_url: '/images/user_profile.png',
                     genres: ['Electronic']
                 });
             } else {
@@ -98,51 +98,65 @@ export default function ProfilePage() {
     };
 
     return (
-        <div className="page-container" style={{ color: 'white', minHeight: '100vh', paddingBottom: '80px' }}>
-            {/* Background Video */}
-            <video autoPlay loop muted playsInline className="app-bg-video">
-                <source src={bgVideo} type="video/mp4" />
-            </video>
+        <div className="page-container" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', color: 'white' }}>
+            {/* Artistic Background */}
+            <ArtisticBackground />
 
-            <Header title="My Collection" />
+            <div style={{ position: 'relative', zIndex: 10, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <Header title="My Collection" />
 
-            <div style={{ padding: '20px', textAlign: 'center', marginTop: '100px' }}>
                 <div style={{
-                    width: '80px', height: '80px', borderRadius: '50%',
-                    background: '#333', margin: '0 auto 20px', display: 'flex',
-                    alignItems: 'center', justifyContent: 'center', fontSize: '2rem',
-                    overflow: 'hidden'
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '20px',
+                    paddingBottom: '100px', // Extra padding for navbar space
+                    textAlign: 'center'
                 }}>
-                    {profile?.avatar_url ? <img src={profile.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '👤'}
-                </div>
-                <h2>{profile?.first_name ? `${profile.first_name} ${profile.last_name}` : 'Your Profile'}</h2>
-                <p style={{ color: '#aaa' }}>@{profile?.username}</p>
-
-                {profile?.role === 'artist' && (
-                    <div style={{ marginTop: '20px' }}>
-                        <button
-                            onClick={handleTokenize}
-                            disabled={loading}
-                            style={{
-                                padding: '10px 20px',
-                                background: 'linear-gradient(45deg, #FFD700, #FFA500)',
-                                border: 'none',
-                                borderRadius: '25px',
-                                color: 'black',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                boxShadow: '0 4px 15px rgba(255, 215, 0, 0.3)'
-                            }}
-                        >
-                            {loading ? 'Launching...' : '🚀 Launch Artist Token'}
-                        </button>
+                    <div style={{
+                        width: '80px', height: '80px', borderRadius: '50%',
+                        background: '#333', marginBottom: '20px', display: 'flex',
+                        alignItems: 'center', justifyContent: 'center', fontSize: '2rem',
+                        overflow: 'hidden',
+                        flexShrink: 0
+                    }}>
+                        <img
+                            src={profile?.avatar_url || '/images/user_profile.png'}
+                            alt="Profile"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
                     </div>
-                )}
+                    <h2>{profile?.first_name ? `${profile.first_name} ${profile.last_name}` : 'Your Profile'}</h2>
+                    <p style={{ color: '#aaa' }}>@{profile?.username}</p>
 
-                <p style={{ color: '#aaa', marginTop: '20px' }}>NFTs and Badges coming soon.</p>
+                    {profile?.role === 'artist' && (
+                        <div style={{ marginTop: '20px' }}>
+                            <button
+                                onClick={handleTokenize}
+                                disabled={loading}
+                                style={{
+                                    padding: '10px 20px',
+                                    background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+                                    border: 'none',
+                                    borderRadius: '25px',
+                                    color: 'black',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 15px rgba(255, 215, 0, 0.3)'
+                                }}
+                            >
+                                {loading ? 'Launching...' : '🚀 Launch Artist Token'}
+                            </button>
+                        </div>
+                    )}
+
+                    <p style={{ color: '#aaa', marginTop: '20px' }}>NFTs and Badges coming soon.</p>
+                </div>
+
+                <Navbar />
             </div>
-
-            <Navbar />
         </div>
     );
 }
