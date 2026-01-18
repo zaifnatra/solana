@@ -1,5 +1,4 @@
-// mockData.js
-// Serving static data for Demo purposes
+import { supabase } from '../supabaseClient';
 
 // Mock Data
 const MOCK_ARTISTS = [
@@ -11,8 +10,8 @@ const MOCK_ARTISTS = [
         description: "Exploring the retro-future through sound.",
         sharePrice: 0.45,
         supporters: 128,
-        mintAddress: "FFmVvCx3FkRiDDysCV9bhWjGbNYXcC37q5GgcdUwZhb2", // Valid Base58
-        walletAddress: "FFmVvCx3FkRiDDysCV9bhWjGbNYXcC37q5GgcdUwZhb2" // Valid Base58
+        mintAddress: "FFmVvCx3FkRiDDysCV9bhWjGbNYXcC37q5GgcdUwZhb2",
+        walletAddress: "FFmVvCx3FkRiDDysCV9bhWjGbNYXcC37q5GgcdUwZhb2"
     },
     {
         id: 2,
@@ -47,12 +46,43 @@ const MOCK_USER = {
 
 // API Functions
 export const fetchArtists = async () => {
-    // Pure Mock Data for Demo
-    return MOCK_ARTISTS;
+    try {
+        const { data, error } = await supabase
+            .from('artists')
+            .select(`
+                *,
+                profiles (
+                    username,
+                    avatar_url,
+                    bio,
+                    wallet_address
+                )
+            `);
+
+        if (error || !data || data.length === 0) {
+            console.warn("Using Mock Data (Supabase empty or error):", error);
+            return MOCK_ARTISTS;
+        }
+
+        // Transform Supabase data to App format
+        return data.map(artist => ({
+            id: artist.artist_id,
+            name: artist.profiles.username,
+            genre: artist.genre,
+            image: artist.profiles.avatar_url || 'https://via.placeholder.com/150',
+            description: artist.profiles.bio,
+            sharePrice: 0.01 + (artist.total_backed * 0.001),
+            supporters: artist.total_backed,
+            mintAddress: artist.mint_address,
+            walletAddress: artist.profiles.wallet_address
+        }));
+
+    } catch (e) {
+        console.error("Fetch Artists failed:", e);
+        return MOCK_ARTISTS;
+    }
 };
 
 export const fetchUser = async (walletAddress) => {
-    // In real app, fetch from 'profiles' by wallet_address
-    // For now return mock
     return MOCK_USER;
 };

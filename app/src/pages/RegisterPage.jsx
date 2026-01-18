@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useArtistProgram } from '../hooks/useArtistProgram';
+import { supabase } from '../supabaseClient';
 import { useAnchorWallet } from "@solana/wallet-adapter-react";
 import Navbar from '../components/Navbar';
 
@@ -23,7 +24,40 @@ export default function RegisterPage() {
             console.log("Solana Registration Success:", signature);
             console.log("New Mint Address:", mint);
 
-            setMsg('Artist Registered on Solana Successfully! (DB Sync skipped)');
+            // 2. Save to Supabase (Restored)
+            if (wallet) {
+                const user = (await supabase.auth.getUser()).data.user;
+                const userId = user?.id; // Needed for RLS
+
+                // Upsert profile
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .upsert({
+                        id: userId, // Assuming auth is working
+                        wallet_address: wallet.publicKey.toString(),
+                        username: name,
+                        role: 'artist',
+                        bio: bio
+                    })
+                    .select();
+
+                if (profileError) {
+                    console.error("Supabase Profile Error:", profileError);
+                } else {
+                    // Insert Artist
+                    const { error: artistError } = await supabase
+                        .from('artists')
+                        .insert({
+                            artist_id: profile[0].id,
+                            mint_address: mint,
+                            genre: genre,
+                            total_backed: 0
+                        });
+                    if (artistError) console.error("Supabase Artist Error:", artistError);
+                }
+            }
+
+            setMsg('Artist Registered Successfully! Check Home Page.');
             setName(''); setGenre(''); setBio('');
         } catch (err) {
             console.error(err);
