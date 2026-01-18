@@ -1,0 +1,102 @@
+@import './WalletOverrides.css';
+
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    /* background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); */
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0;
+    color: white;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.profile-menu-container {
+    position: relative;
+    z-index: 102;
+    /* Above backdrop */
+}
+
+.profile-icon-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.profile-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    width: 150px;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    animation: fadeIn 0.2s ease;
+}
+
+.dropdown-item {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    color: #eee;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+    background: #222;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: #333;
+    margin: 4px 0;
+}
+
+.dropdown-item.logout {
+    color: #ff4d4d;
+}
+
+.dropdown-item.logout:hover {
+    background: rgba(255, 77, 77, 0.1);
+}
+
+.dropdown-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 101;
+    background: transparent;
+    cursor: default;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

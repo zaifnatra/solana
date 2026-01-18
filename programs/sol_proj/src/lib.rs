@@ -3,7 +3,7 @@ use anchor_lang::system_program;
 use anchor_spl::token::{self, Mint, MintTo, Burn, Token, TokenAccount};
 use anchor_spl::associated_token::AssociatedToken;
 
-declare_id!("9TRyxmjsRxghBXVknyZ4ENzckCWsAKgpS43328roSoB6");
+declare_id!("8MJTdU3QNxhcNkU2QT88DV7quGMK5iWq4673rDsdLFjR");
 
 #[program]
 pub mod sol_proj {

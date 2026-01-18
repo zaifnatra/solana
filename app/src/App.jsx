@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 import './App.css'
 import SignInPage from './pages/SignInPage'
-import HomePage from './pages/HomePage'
+// import HomePage from './pages/HomePage' // Replaced by SearchPage for now
 import SearchPage from './pages/SearchPage'
 import RegisterPage from './pages/RegisterPage'
 import OnboardingPage from './pages/OnboardingPage'
 import MintNFTPage from './pages/MintNFTPage'
+import ProfilePage from './pages/ProfilePage'
+import FriendsPage from './pages/FriendsPage'
+import SettingsPage from './pages/SettingsPage'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 import { useConnection, useAnchorWallet } from "@solana/wallet-adapter-react";
@@ -149,13 +152,18 @@ function App() {
           <Route
             path="/onboarding"
             element={
-              isOnboarded ? <Navigate to="/" /> : <OnboardingPage onComplete={() => setIsOnboarded(true)} />
+              isOnboarded ? <Navigate to="/" /> : <OnboardingPage session={session} onComplete={() => setIsOnboarded(true)} />
             }
           />
 
           {/* Protected Routes: Redirect to /onboarding if not completed */}
-          <Route path="/" element={isOnboarded ? <HomePage /> : <Navigate to="/onboarding" />} />
-          <Route path="/search" element={isOnboarded ? <SearchPage /> : <Navigate to="/onboarding" />} />
+          {/* Main Feed is now "Discover" (SearchPage) */}
+          <Route path="/" element={isOnboarded ? <SearchPage /> : <Navigate to="/onboarding" />} />
+
+          <Route path="/profile" element={isOnboarded ? <ProfilePage /> : <Navigate to="/onboarding" />} />
+          <Route path="/settings" element={isOnboarded ? <SettingsPage /> : <Navigate to="/onboarding" />} />
+          <Route path="/friends" element={isOnboarded ? <FriendsPage /> : <Navigate to="/onboarding" />} />
+
           <Route path="/register" element={isOnboarded ? <RegisterPage /> : <Navigate to="/onboarding" />} />
           <Route path="/mint-nft" element={isOnboarded ? <MintNFTPage /> : <Navigate to="/onboarding" />} />
         </Routes>
