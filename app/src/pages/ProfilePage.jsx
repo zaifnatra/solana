@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Header from '../components/Header';
-import ArtisticBackground from '../components/ArtisticBackground'; // New Artistic BG
+import BackgroundVideo from '../components/BackgroundVideo'; // Video BG
 import { supabase } from '../supabaseClient';
 import { useArtistProgram } from '../hooks/useArtistProgram';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -99,8 +99,8 @@ export default function ProfilePage() {
 
     return (
         <div className="page-container" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', color: 'white' }}>
-            {/* Artistic Background */}
-            <ArtisticBackground />
+            {/* Video Background */}
+            <BackgroundVideo />
 
             <div style={{ position: 'relative', zIndex: 10, flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <Header title="My Collection" />

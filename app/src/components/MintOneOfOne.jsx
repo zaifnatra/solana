@@ -1,19 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { createUmiInstance } from '../utils/umi';
 import { createNft } from '@metaplex-foundation/mpl-token-metadata';
 import { generateSigner, percentAmount, createGenericFileFromBrowserFile } from '@metaplex-foundation/umi';
+import { supabase } from '../supabaseClient';
 
 const MintOneOfOne = () => {
     // ... existing hook calls ...
     const wallet = useWallet();
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState('');
+    const [user, setUser] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
         description: '',
         image: null,
+        genre: 'Pop' // Default genre
     });
+
+    useEffect(() => {
+        const getUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+        }
+        getUser();
+    }, []);
+
     const [mintAddress, setMintAddress] = useState(null);
 
     const handleImageChange = (e) => {
@@ -79,6 +91,29 @@ const MintOneOfOne = () => {
             setStatus('Success!');
             setMintAddress(mint.publicKey);
             console.log('Mint Signature:', signature);
+
+            // 4. Save to Database (Enable Discovery)
+            setStatus('Saving to Discover page...');
+
+            if (user) {
+                const { error: dbError } = await supabase
+                    .from('artists')
+                    .upsert({
+                        artist_id: user.id,
+                        mint_address: mint.publicKey.toString(),
+                        genre: formData.genre,
+                        total_backed: 0
+                    }, { onConflict: 'artist_id' });
+
+                if (dbError) {
+                    console.error('DB Save Error:', dbError);
+                    setStatus('Minted, but failed to list on Discover.');
+                } else {
+                    setStatus('Success! Listed on Discover.');
+                }
+            } else {
+                console.warn("No Supabase user found, skipping DB save");
+            }
 
         } catch (err) {
             console.error('Minting failed:', err);
