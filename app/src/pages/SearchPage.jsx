@@ -1,40 +1,76 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import Header from '../components/Header';
 import { supabase } from '../supabaseClient';
 import bgVideo from '../assets/fishglitch.1.mov';
+import ArtistCard from '../components/ArtistCard'; // Import ArtistCard
 import './SearchPage.css';
 
 export default function SearchPage() {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [errorMsg, setErrorMsg] = useState(null);
 
-    // Initial load: show recent users?
+    // Initial load: show recent artists
     useEffect(() => {
-        searchProfiles('');
+        searchArtists('');
     }, []);
 
-    const searchProfiles = async (searchTerm) => {
+    const searchArtists = async (searchTerm) => {
         setLoading(true);
+        setErrorMsg(null);
         try {
+            // Fetch artists with their profile data
             let queryBuilder = supabase
-                .from('profiles')
-                .select('id, username, first_name, last_name, avatar_url')
+                .from('artists')
+                .select(`
+                    *,
+                    profiles (
+                        username,
+                        first_name,
+                        last_name,
+                        avatar_url,
+                        wallet_address
+                    )
+                `)
                 .limit(20);
 
-            if (searchTerm) {
-                queryBuilder = queryBuilder.ilike('username', `%${searchTerm}%`);
-            } else {
-                // If no search, maybe show latest users?
-                queryBuilder = queryBuilder.order('updated_at', { ascending: false });
-            }
+            // Note: Supabase ILIKE on joined tables is tricky, usually filter client-side or use complex RPC.
+            // For now, simpler to fetch all artists (assuming small volume) and filter client side,
+            // OR searching on the 'artists' genre field. 
+            // If searchTerm is provided, we might want to search profiles, but we need the Artist row.
 
             const { data, error } = await queryBuilder;
 
             if (error) throw error;
-            setResults(data || []);
+
+            let formatted = data.map(item => ({
+                id: item.artist_id,
+                name: `${item.profiles?.first_name || ''} ${item.profiles?.last_name || ''}`,
+                username: item.profiles?.username,
+                image: item.profiles?.avatar_url,
+                genre: item.genre,
+                description: "Artist",
+                supporters: 0,
+                sharePrice: 0.001, // Mock price for now or fetch from curve
+                walletAddress: item.profiles?.wallet_address || item.profiles?.id, // Need address for trading
+                mintAddress: item.mint_address
+            }));
+
+            if (searchTerm) {
+                const lower = searchTerm.toLowerCase();
+                formatted = formatted.filter(a =>
+                    a.name.toLowerCase().includes(lower) ||
+                    a.username.toLowerCase().includes(lower) ||
+                    a.genre.toLowerCase().includes(lower)
+                );
+            }
+
+            setResults(formatted);
         } catch (err) {
-            console.error('Error searching profiles:', err);
+            console.error('Error searching artists:', err);
+            setErrorMsg(err.message || JSON.stringify(err));
         } finally {
             setLoading(false);
         }
@@ -43,8 +79,7 @@ export default function SearchPage() {
     const handleSearch = (e) => {
         const val = e.target.value;
         setQuery(val);
-        // Debounce could be added here, but for now direct call is fine for small DB
-        searchProfiles(val);
+        searchArtists(val);
     };
 
     return (
@@ -54,8 +89,11 @@ export default function SearchPage() {
                 <source src={bgVideo} type="video/mp4" />
             </video>
 
-            <div className="search-header">
-                <h1>Discover</h1>
+            {/* Reusable Header */}
+            <Header title="Discover" />
+
+            {/* Search Bar (Now below header) */}
+            <div style={{ padding: '0 20px 20px 20px' }}>
                 <div className="search-bar-wrapper">
                     <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -71,29 +109,26 @@ export default function SearchPage() {
                 </div>
             </div>
 
-            <div className="search-results">
+            <div className="search-results" style={{ paddingBottom: '100px' }}>
+                {/* DEBUG SECTION */}
+                <div style={{ padding: '10px', background: '#220', color: '#ff0', fontSize: '0.8rem', marginBottom: '10px', border: '1px solid #aa0' }}>
+                    <p>DEBUG INFO:</p>
+                    <p>Loading: {loading ? 'Yes' : 'No'}</p>
+                    <p>Results Count: {results ? results.length : 'null'}</p>
+                    {errorMsg && <p style={{ color: 'red' }}>Error: {errorMsg}</p>}
+                </div>
+
                 {loading && <p style={{ textAlign: 'center', color: '#888' }}>Searching...</p>}
 
-                {!loading && results.map(user => (
-                    <div key={user.id} className="search-result-item">
-                        {user.avatar_url ? (
-                            <img src={user.avatar_url} alt={user.username} className="result-avatar" />
-                        ) : (
-                            <div className="result-avatar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#333', fontSize: '1.2rem' }}>
-                                {user.username ? user.username.charAt(0).toUpperCase() : '?'}
-                            </div>
-                        )}
-                        <div className="result-info">
-                            <div className="result-name">{user.first_name} {user.last_name}</div>
-                            <div className="result-handle">@{user.username}</div>
-                        </div>
-                        <button className="follow-btn">View</button>
+                {!loading && results.map(artist => (
+                    <div key={artist.id} style={{ marginBottom: '15px' }}>
+                        <ArtistCard artist={artist} />
                     </div>
                 ))}
 
                 {!loading && results.length === 0 && (
                     <div className="no-results">
-                        No artists found.
+                        No creators found with tokens.
                     </div>
                 )}
             </div>

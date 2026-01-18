@@ -31,15 +31,18 @@ export default function SignInPage({ onLoginSuccess }) {
         e.preventDefault()
         setLoading(true)
         setError(null)
+        const cleanEmail = email.trim()
 
-        // DEMO BYPASS: Check for hardcoded credentials (Restored for convenience)
-        if (email === 'demo@example.com' && password === 'password123') {
+        // DEMO BYPASS: Allow any @example.com for dev testing
+        if (cleanEmail.endsWith('@example.com') && password === 'password123') {
             setTimeout(() => {
                 setLoading(false)
                 if (onLoginSuccess) {
+                    // Generate a pseudo-random ID based on email so it persists for the session
+                    const mockId = btoa(cleanEmail).substring(0, 15);
                     onLoginSuccess({
-                        user: { id: 'demo-user', email: 'demo@example.com' },
-                        access_token: 'demo-token'
+                        user: { id: mockId, email: cleanEmail, isMock: true },
+                        access_token: 'mock-token-' + Date.now()
                     })
                 }
             }, 1000)
@@ -49,7 +52,7 @@ export default function SignInPage({ onLoginSuccess }) {
         try {
             if (isSignUp) {
                 const { data, error } = await supabase.auth.signUp({
-                    email,
+                    email: cleanEmail,
                     password,
                 })
                 if (error) throw error

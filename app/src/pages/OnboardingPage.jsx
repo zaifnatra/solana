@@ -18,11 +18,12 @@ const GENRES_BY_TYPE = {
     digital: ['3D Modeling', 'AI Art', 'Pixel Art', 'Animation', 'NFTs']
 }
 
-export default function OnboardingPage({ onComplete }) {
+export default function OnboardingPage({ onComplete, session }) {
     const navigate = useNavigate()
     const [step, setStep] = useState(1)
     const [loading, setLoading] = useState(false)
     const [user, setUser] = useState(null)
+    const [role, setRole] = useState('user') // 'user' (Fan) or 'artist' (Creator)
 
     // Form State
     const [firstName, setFirstName] = useState('')
@@ -35,25 +36,32 @@ export default function OnboardingPage({ onComplete }) {
     const [selectedGenres, setSelectedGenres] = useState([]) // Flat array of genre strings
 
     useEffect(() => {
+        if (session && session.user) {
+            setUser(session.user)
+            if (!username && session.user.email) {
+                setUsername(session.user.email.split('@')[0])
+            }
+            return;
+        }
+
         // fetch current user
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (!session) {
+        supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+            if (!currentSession) {
                 navigate('/') // Redirect to login if no session
             } else {
-                setUser(session.user)
+                setUser(currentSession.user)
                 // Pre-fill username from email if empty
-                if (!username && session.user.email) {
-                    setUsername(session.user.email.split('@')[0])
+                if (!username && currentSession.user.email) {
+                    setUsername(currentSession.user.email.split('@')[0])
                 }
             }
         })
-    }, [navigate])
+    }, [navigate, session])
 
     const handleAvatarChange = (e) => {
         const file = e.target.files[0]
         if (file) {
             setAvatarFile(file)
-            // Use FileReader for preview (more robust than createObjectURL)
             const reader = new FileReader()
             reader.onloadend = () => {
                 setAvatarPreview(reader.result)
@@ -81,13 +89,16 @@ export default function OnboardingPage({ onComplete }) {
     // STEPS NAVIGATION
     const handleNext = async () => {
         if (step === 1) {
-            // Validate Step 1
-            if (!username) return alert('Username is required!')
-            // Check username uniqueness (Optional optimization: debounce check)
+            // Role selected via buttons, just move next
             setStep(2)
         } else if (step === 2) {
-            if (selectedArtTypes.length === 0) return alert('Please select at least one art type!')
+            // Validate Profile (Old Step 1)
+            if (!username) return alert('Username is required!')
             setStep(3)
+        } else if (step === 3) {
+            // Validate Art Types (Old Step 2)
+            if (selectedArtTypes.length === 0) return alert('Please select at least one art type!')
+            setStep(4)
         }
     }
 
@@ -118,11 +129,18 @@ export default function OnboardingPage({ onComplete }) {
                 } catch (uploadErr) {
                     console.error("Upload error:", uploadErr)
                     alert(`Warning: Profile picture could not be uploaded (${uploadErr.message}). Saving profile without it.`)
-                    // Proceed without avatarUrl
                 }
             }
 
             // 2. Update Profile
+            if (user.isMock) {
+                console.log("MOCK MODE: Skipping Supabase DB save.");
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Fake delay
+                if (onComplete) onComplete()
+                navigate('/')
+                return;
+            }
+
             try {
                 const updates = {
                     id: user.id,
@@ -131,8 +149,9 @@ export default function OnboardingPage({ onComplete }) {
                     last_name: lastName,
                     art_types: selectedArtTypes,
                     genres: selectedGenres,
+                    role: role, // Save the selected role
                     onboarding_completed: true,
-                    updated_at: new Date().toISOString(), // Ensure ISO string
+                    updated_at: new Date().toISOString(),
                 }
                 if (avatarUrl) updates.avatar_url = avatarUrl
 
@@ -141,22 +160,15 @@ export default function OnboardingPage({ onComplete }) {
                 const { data: updateData, error: updateError } = await supabase
                     .from('profiles')
                     .upsert(updates)
-                    .select() // Ask for data back to verify it happened
-
-                console.log("Update Result:", { updateData, updateError });
+                    .select()
 
                 if (updateError) throw updateError
 
-                console.log("Profile updated successfully, navigating...");
-
-                // Notify App.jsx to update state immediately
                 if (onComplete) onComplete()
-
-                // 3. Redirect to Home
                 navigate('/')
             } catch (updateErr) {
-                console.error("Profile update error FULL OBJECT:", updateErr)
-                throw new Error(`Profile Save Failed: ${updateErr.message || JSON.stringify(updateErr)}`)
+                console.error("Profile update error:", updateErr)
+                throw new Error(`Profile Save Failed: ${updateErr.message}`)
             }
 
         } catch (error) {
@@ -178,9 +190,44 @@ export default function OnboardingPage({ onComplete }) {
                     <div className={`step-dot ${step >= 1 ? 'active' : ''} ${step > 1 ? 'completed' : ''}`}></div>
                     <div className={`step-dot ${step >= 2 ? 'active' : ''} ${step > 2 ? 'completed' : ''}`}></div>
                     <div className={`step-dot ${step >= 3 ? 'active' : ''} ${step > 3 ? 'completed' : ''}`}></div>
+                    <div className={`step-dot ${step >= 4 ? 'active' : ''} ${step > 4 ? 'completed' : ''}`}></div>
                 </div>
 
+                {/* STEP 1: ROLE SELECTION */}
                 {step === 1 && (
+                    <>
+                        <h2 className="onboarding-title">Who are you?</h2>
+                        <p className="onboarding-subtitle">Choose how you want to use the platform.</p>
+
+                        <div className="selection-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                            <div
+                                className={`selection-card ${role === 'artist' ? 'selected' : ''}`}
+                                onClick={() => setRole('artist')}
+                                style={{ padding: '30px 15px' }}
+                            >
+                                <span className="card-icon" style={{ fontSize: '3rem' }}>🎨</span>
+                                <span className="card-label" style={{ fontSize: '1.2rem', marginTop: '10px' }}>Creator</span>
+                                <p style={{ fontSize: '0.8rem', color: '#aaa', marginTop: '5px' }}>I make art/music</p>
+                            </div>
+                            <div
+                                className={`selection-card ${role === 'user' ? 'selected' : ''}`}
+                                onClick={() => setRole('user')}
+                                style={{ padding: '30px 15px' }}
+                            >
+                                <span className="card-icon" style={{ fontSize: '3rem' }}>🎧</span>
+                                <span className="card-label" style={{ fontSize: '1.2rem', marginTop: '10px' }}>Fan</span>
+                                <p style={{ fontSize: '0.8rem', color: '#aaa', marginTop: '5px' }}>I want to discover</p>
+                            </div>
+                        </div>
+
+                        <div className="nav-buttons" style={{ justifyContent: 'flex-end' }}>
+                            <button className="btn-primary" onClick={handleNext}>Next</button>
+                        </div>
+                    </>
+                )}
+
+                {/* STEP 2: PROFILE DETAILS (Old Step 1) */}
+                {step === 2 && (
                     <>
                         <h2 className="onboarding-title">Personalize Your Profile</h2>
                         <p className="onboarding-subtitle">Let's get to know you better.</p>
@@ -199,8 +246,6 @@ export default function OnboardingPage({ onComplete }) {
                                         alt="Avatar"
                                         className="avatar-preview"
                                         onError={(e) => {
-                                            console.error("Image load error", e);
-                                            // Fallback to placeholder instead of black void
                                             setAvatarPreview(null);
                                             alert("Could not display this image file. Try another one.");
                                         }}
@@ -244,15 +289,17 @@ export default function OnboardingPage({ onComplete }) {
                             </div>
                         </div>
 
-                        <div className="nav-buttons" style={{ justifyContent: 'flex-end' }}>
+                        <div className="nav-buttons">
+                            <button className="btn-secondary" onClick={() => setStep(1)}>Back</button>
                             <button className="btn-primary" onClick={handleNext}>Next</button>
                         </div>
                     </>
                 )}
 
-                {step === 2 && (
+                {/* STEP 3: ART TYPES (Old Step 2) */}
+                {step === 3 && (
                     <>
-                        <h2 className="onboarding-title">What moves you?</h2>
+                        <h2 className="onboarding-title">{role === 'artist' ? "What do you create?" : "What do you like?"}</h2>
                         <p className="onboarding-subtitle">Select the art forms you are interested in.</p>
 
                         <div className="selection-grid">
@@ -269,13 +316,14 @@ export default function OnboardingPage({ onComplete }) {
                         </div>
 
                         <div className="nav-buttons">
-                            <button className="btn-secondary" onClick={() => setStep(1)}>Back</button>
+                            <button className="btn-secondary" onClick={() => setStep(2)}>Back</button>
                             <button className="btn-primary" onClick={handleNext}>Next</button>
                         </div>
                     </>
                 )}
 
-                {step === 3 && (
+                {/* STEP 4: GENRES (Old Step 3) */}
+                {step === 4 && (
                     <>
                         <h2 className="onboarding-title">Your Vibe</h2>
                         <p className="onboarding-subtitle">Pick the genres that speak to you.</p>
@@ -306,7 +354,7 @@ export default function OnboardingPage({ onComplete }) {
                         </div>
 
                         <div className="nav-buttons">
-                            <button className="btn-secondary" onClick={() => setStep(2)}>Back</button>
+                            <button className="btn-secondary" onClick={() => setStep(3)}>Back</button>
                             <button className="btn-primary" onClick={handleFinish} disabled={loading}>
                                 {loading ? 'Saving...' : 'Finish'}
                             </button>

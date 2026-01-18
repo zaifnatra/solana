@@ -1,0 +1,130 @@
+/* Dark, Moody Theme for Settings */
+.settings-container {
+    min-height: 100vh;
+    padding-bottom: 80px;
+    background: transparent;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.settings-card {
+    width: 90%;
+    max-width: 500px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+.settings-section {
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1.5rem;
+}
+
+.settings-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Avatar Upload Reuse */
+.settings-avatar-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.settings-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #333;
+}
+
+.upload-btn-label {
+    background: #333;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.upload-btn-label:hover {
+    background: #444;
+}
+
+/* Forms */
+.settings-input {
+    width: 100%;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    box-sizing: border-box;
+}
+
+.settings-input:focus {
+    outline: none;
+    border-color: #666;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.save-btn {
+    width: 100%;
+    padding: 12px;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.save-btn:hover {
+    opacity: 0.9;
+}
+
+.save-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Danger Zone */
+.delete-account-btn {
+    width: 100%;
+    padding: 12px;
+    background: rgba(220, 38, 38, 0.2);
+    color: #ef4444;
+    border: 1px solid #ef4444;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.delete-account-btn:hover {
+    background: #ef4444;
+    color: white;
+}
