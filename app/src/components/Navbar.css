@@ -4,9 +4,9 @@
     left: 0;
     width: 100%;
     height: 60px;
-    background-color: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid #eee;
+    background-color: #000;
+    /* Strict black */
+    /* border-top: 1px solid #222;  Optional subtle border */
     display: flex;
     justify-content: space-around;
     align-items: center;
@@ -20,7 +20,8 @@
     align-items: center;
     justify-content: center;
     text-decoration: none;
-    color: #999;
+    color: #666;
+    /* Dim gray for inactive */
     font-size: 0.75rem;
     font-weight: 500;
     gap: 4px;
@@ -29,18 +30,21 @@
 }
 
 .nav-item path {
-    stroke: #999;
+    stroke: #666;
+    /* Dim gray icons */
     transition: stroke 0.2s;
 }
 
 .nav-item.active {
-    color: #000;
+    color: #fff;
+    /* White for active */
 }
 
 .nav-item.active path {
-    stroke: #000;
+    stroke: #fff;
 }
 
 .nav-item:hover {
-    background-color: rgba(0, 0, 0, 0.02);
+    background-color: #111;
+    /* Subtle dark hover */
 }

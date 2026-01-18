@@ -44,12 +44,18 @@ const ArtistCard = ({ artist, onSelect }) => {
     return (
         <div className="artist-card" onClick={() => onSelect && onSelect(artist)}>
             <div style={{
-                height: '200px',
-                backgroundImage: `url(${artist.image})`,
+                height: '140px', // Reduced height since no image
+                backgroundColor: '#111', // Fallback dark
+                backgroundImage: artist.image ? `url(${artist.image})` : 'linear-gradient(45deg, #1a1a1a, #2a2a2a)', // Subtle gradient if no image
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                borderRadius: '10px 10px 0 0'
-            }}></div>
+                borderRadius: '10px 10px 0 0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}>
+                {!artist.image && <span style={{ fontSize: '2rem', opacity: 0.2 }}>🎵</span>}
+            </div>
             <div style={{ padding: '15px', textAlign: 'left' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ margin: '0 0 5px 0' }}>{artist.name}</h3>

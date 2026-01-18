@@ -1,132 +1,100 @@
-/* Inherit some core styles from variables if possible, or define them here */
+/* Fullscreen video background */
+.app-bg-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+    /* Behind everything */
+    filter: brightness(0.6) contrast(1.1);
+    /* Darker and moodier */
+}
+
+/* Ensure home container sits on top */
 .home-container {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
     padding-bottom: 80px;
     /* Space for navbar */
-    background-color: #f9f9f9;
-    min-height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    /* Dark overlay over video */
 }
 
 .hero-header {
-    height: 200px;
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-    /* Placeholder for image */
+    background: transparent;
+    padding: 30px 20px;
     position: relative;
-    display: flex;
-    align-items: flex-end;
-    padding: 1.5rem;
     color: white;
-    margin-bottom: 1.5rem;
 }
 
 .hero-header h1 {
-    margin: 0;
     font-size: 2.5rem;
     font-weight: 800;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    letter-spacing: -1px;
+    margin-bottom: 5px;
 }
 
 .hero-subtitle {
-    margin-top: 0.5rem;
-    font-size: 1rem;
-    opacity: 0.9;
+    color: #aaa;
+    font-size: 0.9rem;
 }
 
+/* Tabs */
 .section-tabs {
     display: flex;
-    gap: 1.5rem;
-    padding: 0 1.5rem;
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid #eee;
-    background: white;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    gap: 20px;
+    padding: 0 20px;
+    margin-bottom: 20px;
 }
 
 .tab-item {
-    padding: 1rem 0;
-    font-weight: 600;
     color: #666;
-    position: relative;
+    font-weight: 600;
     cursor: pointer;
+    padding-bottom: 5px;
+    border-bottom: 2px solid transparent;
 }
 
 .tab-item.active {
-    color: #000;
+    color: #fff;
+    border-bottom: 2px solid #fff;
 }
 
-.tab-item.active::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background-color: #10b981;
-    /* Mint green accent */
-}
 
+/* Adjust card/grid */
 .artists-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
-    padding: 0 1.5rem;
-}
-
-.artist-card {
-    background: white;
-    border-radius: 16px;
-    padding: 2rem;
+    padding: 20px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    gap: 20px;
+}
+
+/* Artist cards styling override */
+.artist-card {
+    background: #000 !important;
+    /* Strict black */
+    border: 1px solid #333 !important;
+    /* Subtle border */
+    border-radius: 12px;
+    overflow: hidden;
     transition: transform 0.2s;
-    border: 1px solid #f0f0f0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    color: white;
 }
 
-.artist-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+.artist-card h3 {
+    color: white;
 }
 
-.artist-avatar {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-bottom: 1rem;
-    border: 3px solid #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.artist-name {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin: 0;
-    color: #111;
-}
-
-.artist-handle {
-    color: #666;
-    font-size: 0.9rem;
-    margin: 0.25rem 0 1.5rem 0;
-}
-
-.view-profile-btn {
-    background-color: #ecfdf5;
-    color: #059669;
-    border: none;
-    padding: 0.6rem 1.2rem;
-    border-radius: 20px;
-    font-weight: 600;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    width: 100%;
-}
-
-.view-profile-btn:hover {
-    background-color: #d1fae5;
+.artist-card .badge {
+    background: #222;
+    color: #aaa;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }

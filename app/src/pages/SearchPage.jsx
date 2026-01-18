@@ -1,57 +1,97 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import { supabase } from '../supabaseClient';
+import bgVideo from '../assets/fishglitch.1.mov';
 import './SearchPage.css';
-
-// Mock data to search through
-const SEARCH_DATA = [
-    { id: 1, name: 'Nicolas Romero', handle: '@Niccc333', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d' },
-    { id: 2, name: 'Kieran Joost', handle: '@kieranjoost', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' },
-    { id: 3, name: 'kt', handle: '@kt', avatar: 'https://i.pravatar.cc/150?u=a04258114e29026302d' },
-    { id: 4, name: 'Saymonn', handle: '@saymonn', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d' },
-    { id: 5, name: 'Alice Wonderland', handle: '@alice', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024e' },
-    { id: 6, name: 'Bob Builder', handle: '@bobbuilds', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024f' },
-];
 
 export default function SearchPage() {
     const [query, setQuery] = useState('');
+    const [results, setResults] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-    const results = SEARCH_DATA.filter(artist =>
-        artist.name.toLowerCase().includes(query.toLowerCase()) ||
-        artist.handle.toLowerCase().includes(query.toLowerCase())
-    );
+    // Initial load: show recent users?
+    useEffect(() => {
+        searchProfiles('');
+    }, []);
+
+    const searchProfiles = async (searchTerm) => {
+        setLoading(true);
+        try {
+            let queryBuilder = supabase
+                .from('profiles')
+                .select('id, username, first_name, last_name, avatar_url')
+                .limit(20);
+
+            if (searchTerm) {
+                queryBuilder = queryBuilder.ilike('username', `%${searchTerm}%`);
+            } else {
+                // If no search, maybe show latest users?
+                queryBuilder = queryBuilder.order('updated_at', { ascending: false });
+            }
+
+            const { data, error } = await queryBuilder;
+
+            if (error) throw error;
+            setResults(data || []);
+        } catch (err) {
+            console.error('Error searching profiles:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSearch = (e) => {
+        const val = e.target.value;
+        setQuery(val);
+        // Debounce could be added here, but for now direct call is fine for small DB
+        searchProfiles(val);
+    };
 
     return (
         <div className="search-container">
+            {/* Background Video Reuse */}
+            <video autoPlay loop muted playsInline className="app-bg-video">
+                <source src={bgVideo} type="video/mp4" />
+            </video>
+
             <div className="search-header">
-                <h1>Find Artists</h1>
+                <h1>Discover</h1>
                 <div className="search-bar-wrapper">
                     <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M21 21L16.65 16.65" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M21 21L16.65 16.65" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                     <input
                         type="text"
                         placeholder="Search for artists..."
                         value={query}
-                        onChange={(e) => setQuery(e.target.value)}
+                        onChange={handleSearch}
                         className="search-input"
-                        autoFocus
                     />
                 </div>
             </div>
 
             <div className="search-results">
-                {results.map(artist => (
-                    <div key={artist.id} className="search-result-item">
-                        <img src={artist.avatar} alt={artist.name} className="result-avatar" />
+                {loading && <p style={{ textAlign: 'center', color: '#888' }}>Searching...</p>}
+
+                {!loading && results.map(user => (
+                    <div key={user.id} className="search-result-item">
+                        {user.avatar_url ? (
+                            <img src={user.avatar_url} alt={user.username} className="result-avatar" />
+                        ) : (
+                            <div className="result-avatar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#333', fontSize: '1.2rem' }}>
+                                {user.username ? user.username.charAt(0).toUpperCase() : '?'}
+                            </div>
+                        )}
                         <div className="result-info">
-                            <div className="result-name">{artist.name}</div>
-                            <div className="result-handle">{artist.handle}</div>
+                            <div className="result-name">{user.first_name} {user.last_name}</div>
+                            <div className="result-handle">@{user.username}</div>
                         </div>
-                        <button className="follow-btn">Follow</button>
+                        <button className="follow-btn">View</button>
                     </div>
                 ))}
-                {results.length === 0 && (
+
+                {!loading && results.length === 0 && (
                     <div className="no-results">
                         No artists found.
                     </div>

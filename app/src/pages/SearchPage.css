@@ -1,22 +1,26 @@
 .search-container {
     padding-bottom: 80px;
-    background-color: #fff;
+    background-color: transparent;
+    /* Show video background */
     min-height: 100vh;
+    color: white;
 }
 
 .search-header {
     padding: 1.5rem;
-    background-color: #fff;
+    background: transparent;
     position: sticky;
     top: 0;
     z-index: 10;
-    border-bottom: 1px solid #f0f0f0;
+    /* backdrop-filter: blur(10px); */
 }
 
 .search-header h1 {
     margin: 0 0 1rem 0;
-    font-size: 1.8rem;
+    font-size: 2rem;
     font-weight: 800;
+    color: white;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .search-bar-wrapper {
@@ -35,18 +39,24 @@
     width: 100%;
     padding: 12px 12px 12px 40px;
     border-radius: 12px;
-    border: 1px solid #eee;
-    background-color: #f9f9f9;
+    border: 1px solid #333;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
     font-size: 1rem;
     outline: none;
     transition: all 0.2s;
     box-sizing: border-box;
+    backdrop-filter: blur(5px);
 }
 
 .search-input:focus {
-    background-color: #fff;
-    border-color: #000;
-    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.05);
+    background-color: rgba(0, 0, 0, 0.9);
+    border-color: #666;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
+}
+
+.search-input::placeholder {
+    color: #888;
 }
 
 .search-results {
@@ -56,8 +66,17 @@
 .search-result-item {
     display: flex;
     align-items: center;
-    padding: 1rem 0;
-    border-bottom: 1px solid #f5f5f5;
+    padding: 1rem;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid #222;
+    transition: transform 0.2s;
+}
+
+.search-result-item:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: translateY(-2px);
 }
 
 .result-avatar {
@@ -66,6 +85,8 @@
     border-radius: 50%;
     object-fit: cover;
     margin-right: 1rem;
+    background-color: #333;
+    border: 1px solid #444;
 }
 
 .result-info {
@@ -75,31 +96,34 @@
 .result-name {
     font-weight: 700;
     font-size: 1rem;
-    color: #111;
+    color: #fff;
 }
 
 .result-handle {
-    color: #666;
+    color: #888;
     font-size: 0.9rem;
 }
 
 .follow-btn {
     padding: 0.5rem 1rem;
     border-radius: 20px;
-    border: 1px solid #eee;
-    background: white;
+    border: 1px solid #666;
+    background: transparent;
+    color: white;
     font-weight: 600;
     font-size: 0.85rem;
     cursor: pointer;
+    transition: all 0.2s;
 }
 
 .follow-btn:hover {
-    background-color: #f9f9f9;
-    border-color: #ccc;
+    background-color: white;
+    color: black;
+    border-color: white;
 }
 
 .no-results {
     text-align: center;
-    color: #999;
+    color: #888;
     margin-top: 2rem;
 }

@@ -1,0 +1,318 @@
+/* Dark, Moody Theme matching SignInPage */
+.onboarding-container {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    /* Fix: Break out of .app-layout padding */
+    top: 0;
+    left: 0;
+    z-index: 200;
+    /* Ensure it matches or exceeds other layers */
+    overflow: hidden;
+    color: white;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Video Background */
+.onboarding-bg-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    opacity: 0.6;
+    /* Keeps the moody vibe */
+    filter: blur(10px);
+    /* Blur for focus on content */
+}
+
+/* Glassmorphism Card */
+.onboarding-card {
+    position: relative;
+    z-index: 10;
+    width: 90%;
+    max-width: 500px;
+    /* Slightly narrower for a focused form look */
+    background: #000000;
+    /* Solid black or very dark for high contrast */
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 3rem 2.5rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Step Indicator */
+.step-indicator {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 2rem;
+    justify-content: center;
+}
+
+.step-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #444;
+    transition: all 0.3s ease;
+}
+
+.step-dot.active {
+    background: white;
+}
+
+.step-dot.completed {
+    background: #4ade80;
+    /* Green for success/done */
+}
+
+/* Typography */
+.onboarding-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    color: white;
+}
+
+.onboarding-subtitle {
+    font-size: 0.95rem;
+    color: #888;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+/* Form Elements */
+.form-group {
+    width: 100%;
+    margin-bottom: 1.25rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #ccc;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    background: #1a1a1a;
+    /* Dark input background */
+    border: 1px solid #333;
+    border-radius: 8px;
+    /* Rounded rectangle */
+    color: white;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    background: #222;
+    border-color: #555;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.form-input::placeholder {
+    color: #555;
+}
+
+/* Profile Picture Upload */
+.avatar-upload {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 1.5rem;
+    cursor: pointer;
+    display: block;
+}
+
+.avatar-preview {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #333;
+    background-color: #333;
+    /* Fix: prevents transparent images from looking "black" against dark bg */
+    transition: border-color 0.3s ease;
+}
+
+.avatar-upload:hover .avatar-preview {
+    border-color: #666;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px dashed #444;
+    transition: all 0.2s ease;
+}
+
+.avatar-upload:hover .avatar-placeholder {
+    border-color: #777;
+    background: #222;
+}
+
+.upload-icon {
+    font-size: 1.5rem;
+    color: #555;
+}
+
+/* Grids for Selections */
+.selection-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    width: 100%;
+}
+
+.selection-card {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    /* Rounded rectangle */
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    height: 110px;
+}
+
+.selection-card:hover {
+    background: #222;
+    border-color: #555;
+}
+
+.selection-card.selected {
+    background: white;
+    color: black;
+    border-color: white;
+}
+
+.card-icon {
+    font-size: 1.5rem;
+}
+
+.card-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Genre Pills */
+.genre-section {
+    width: 100%;
+    margin-bottom: 2rem;
+}
+
+.genre-section-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+    padding-left: 0.5rem;
+    border-left: 3px solid white;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.genre-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.genre-pill {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    /* Rounded rectangle */
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #ccc;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.genre-pill:hover {
+    background: #252525;
+    border-color: #555;
+    color: white;
+}
+
+.genre-pill.selected {
+    background: white;
+    color: black;
+    border-color: white;
+}
+
+/* Navigation Buttons */
+.nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #222;
+}
+
+.btn-secondary {
+    padding: 0.8rem 1.5rem;
+    background: transparent;
+    border: none;
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.btn-secondary:hover {
+    color: white;
+}
+
+.btn-primary {
+    padding: 0.8rem 2rem;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 8px;
+    /* Rounded rectangle */
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    min-width: 120px;
+    transition: background 0.2s ease;
+}
+
+.btn-primary:hover {
+    background: #e0e0e0;
+}
+
+.btn-primary:disabled {
+    background: #333;
+    color: #666;
+    cursor: not-allowed;
+}

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import ArtistCard from '../components/ArtistCard';
 import { fetchArtists } from '../utils/mockData';
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import bgVideo from '../assets/fishglitch.1.mov'; // Import the requested video
 import './HomePage.css';
 
 export default function HomePage() {
@@ -26,16 +28,27 @@ export default function HomePage() {
 
     return (
         <div className="home-container">
+            {/* Background Video (Fixed) */}
+            <video autoPlay loop muted playsInline className="app-bg-video">
+                <source src={bgVideo} type="video/mp4" />
+            </video>
+
             {/* Hero Header */}
             <div className="hero-header">
-                <div style={{ zIndex: 2 }}>
-                    <h1>Social Hub</h1>
-                    <p className="hero-subtitle">Connect with your favorite artists and collectors.</p>
+                <div style={{ zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+                    <div>
+                        <h1>Social Hub</h1>
+                        <p className="hero-subtitle">Connect with your favorite artists and collectors.</p>
+                    </div>
+                    {/* Move Wallet Button INSIDE the layout frame - REMOVED per user request */}
+                    {/* <div style={{ pointerEvents: 'auto' }}>
+                         <WalletMultiButton />
+                    </div> */}
                 </div>
-                {/* Overlay for readability if we had a real image */}
+                {/* Overlay for readability */}
                 <div style={{
                     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)',
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
                     zIndex: 1
                 }}></div>
             </div>
