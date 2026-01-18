@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
 import './SignInPage.css'
-import loginBg from '../assets/signinpicture.jpeg'
+import loginBg from '../assets/Horse.1.mp4'
 
 export default function SignInPage({ onLoginSuccess }) {
     const [email, setEmail] = useState('demo@example.com')
@@ -18,6 +18,9 @@ export default function SignInPage({ onLoginSuccess }) {
             setLoading(true)
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
+                options: {
+                    redirectTo: window.location.origin
+                }
             })
             if (error) throw error
         } catch (error) {
@@ -31,20 +34,6 @@ export default function SignInPage({ onLoginSuccess }) {
         e.preventDefault()
         setLoading(true)
         setError(null)
-
-        // DEMO BYPASS: Check for hardcoded credentials
-        if (email === 'demo@example.com' && password === 'password123') {
-            setTimeout(() => {
-                setLoading(false)
-                if (onLoginSuccess) {
-                    onLoginSuccess({
-                        user: { id: 'demo-user', email: 'demo@example.com' },
-                        access_token: 'demo-token'
-                    })
-                }
-            }, 1000) // Fake network delay
-            return
-        }
 
         try {
             if (isSignUp) {
@@ -75,7 +64,17 @@ export default function SignInPage({ onLoginSuccess }) {
         <div className="signin-container">
             {/* Left Side - Image */}
             <div className="signin-left">
-                <img src={loginBg} alt="Login Visual" className="signin-bg-image" />
+                <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="signin-bg-video"
+                >
+                    <source src={loginBg} type="video/quicktime" />
+                    <source src={loginBg} type="video/mp4" />
+                    Your browser does not support the video tag.
+                </video>
                 <div style={{
                     position: 'absolute',
                     top: 0, left: 0, right: 0, bottom: 0,
