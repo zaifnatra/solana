@@ -3,6 +3,10 @@ import { supabase } from './supabaseClient'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
+import SignInPage from './pages/SignInPage'
+import HomePage from './pages/HomePage'
+import SearchPage from './pages/SearchPage'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 import { useConnection, useAnchorWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
@@ -30,7 +34,19 @@ function App() {
         setSession(data.session)
       }
     })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
+
+  if (!session) {
+    return <SignInPage onLoginSuccess={setSession} />
+  }
 
   const registerArtist = async () => {
     if (!wallet) return;
@@ -150,66 +166,31 @@ function App() {
     }
   }
 
+  // Render the Login page if not authenticated
+  if (!session) {
+    return <SignInPage onLoginSuccess={setSession} />
+  }
+
+  // Render the App with Routing once authenticated
   return (
-    <>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: 10 }}>
-        <WalletMultiButton />
-      </div>
-
-      <h1>Artist Token System</h1>
-
-      {wallet ? (
-        <div className="card">
-          <h3>Artist Actions</h3>
-          <p>For this demo, all actions target YOUR OWN artist profile.</p>
-
-          <div style={{ margin: '10px 0' }}>
-            <button onClick={registerArtist}>
-              Register as Artist (Init Profile)
-            </button>
-          </div>
-
-          <hr />
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="Amount"
-              style={{ padding: '10px', fontSize: '16px', width: '200px' }}
-            />
-
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={buyToken}>Buy Tokens</button>
-              <button onClick={sellToken}>Sell Tokens</button>
-            </div>
-          </div>
-
-          {txSig && (
-            <p className="success">
-              Success! <br />
-              <a
-                href={`https://explorer.solana.com/tx/${txSig}?cluster=custom&customUrl=http://127.0.0.1:8899`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                View Transaction
-              </a>
-            </p>
-          )}
-          {errorMsg && <p style={{ color: 'red', wordBreak: 'break-all' }}>{errorMsg}</p>}
+    <BrowserRouter>
+      <div className="app-layout">
+        {/* Wallet connection can stay global or move to pages */}
+        <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 100 }}>
+          <WalletMultiButton />
         </div>
-      ) : (
-        <p>Connect your wallet to get started.</p>
-      )}
 
-      {/* Supabase Connection Status */}
-      <div style={{ padding: '10px', margin: '10px', border: '1px solid #ccc', borderRadius: '5px' }}>
-        <h3>Database Connection Status:</h3>
-        <p>{session === null ? '🔴 Not Connected / No Session' : '🟢 Connected!'}</p>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/search" element={<SearchPage />} />
+        </Routes>
+
+        {/* Supabase Status Debug (Optional, can hide) */}
+        {/* <div style={{ position: 'fixed', bottom: 70, right: 10, opacity: 0.5, fontSize: '10px', background: 'white', padding: 5 }}>
+             {session ? '🟢 DB Connected' : '🔴 Disconnected'}
+          </div> */}
       </div>
-    </>
+    </BrowserRouter>
   )
 }
 
