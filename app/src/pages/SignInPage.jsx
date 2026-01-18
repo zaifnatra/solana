@@ -1,16 +1,13 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
 import './SignInPage.css'
-import loginBg from '../assets/signinpicture.jpeg'
+import loginBg from '../assets/Horse.1.mp4'
 
 export default function SignInPage({ onLoginSuccess }) {
     const [email, setEmail] = useState('demo@example.com')
     const [password, setPassword] = useState('password123')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
-
-    // State to toggle between Sign In and Sign Up modes if desired, 
-    // but for now we stick to the main "Log In" view with a link.
     const [isSignUp, setIsSignUp] = useState(false)
 
     const handleGoogleLogin = async () => {
@@ -18,6 +15,9 @@ export default function SignInPage({ onLoginSuccess }) {
             setLoading(true)
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
+                options: {
+                    redirectTo: window.location.origin
+                }
             })
             if (error) throw error
         } catch (error) {
@@ -32,7 +32,7 @@ export default function SignInPage({ onLoginSuccess }) {
         setLoading(true)
         setError(null)
 
-        // DEMO BYPASS: Check for hardcoded credentials
+        // DEMO BYPASS: Check for hardcoded credentials (Restored for convenience)
         if (email === 'demo@example.com' && password === 'password123') {
             setTimeout(() => {
                 setLoading(false)
@@ -42,7 +42,7 @@ export default function SignInPage({ onLoginSuccess }) {
                         access_token: 'demo-token'
                     })
                 }
-            }, 1000) // Fake network delay
+            }, 1000)
             return
         }
 
@@ -73,9 +73,19 @@ export default function SignInPage({ onLoginSuccess }) {
 
     return (
         <div className="signin-container">
-            {/* Left Side - Image */}
+            {/* Left Side - Video */}
             <div className="signin-left">
-                <img src={loginBg} alt="Login Visual" className="signin-bg-image" />
+                <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="signin-bg-video"
+                >
+                    <source src={loginBg} type="video/quicktime" />
+                    <source src={loginBg} type="video/mp4" />
+                    Your browser does not support the video tag.
+                </video>
                 <div style={{
                     position: 'absolute',
                     top: 0, left: 0, right: 0, bottom: 0,
@@ -105,7 +115,6 @@ export default function SignInPage({ onLoginSuccess }) {
                             </svg>
                             Google
                         </button>
-                        {/* Apple button removed as requested */}
                     </div>
 
                     <div className="divider">OR CONTINUE WITH</div>
