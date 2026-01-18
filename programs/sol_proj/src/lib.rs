@@ -21,26 +21,50 @@ pub mod sol_proj {
     pub fn buy_token(ctx: Context<BuyToken>, amount: u64) -> Result<()> {
         let profile = &mut ctx.accounts.artist_profile;
         
-        // Simple Linear Bonding Curve: Price = Supply.
-        // Cost to mint 'amount' starting at 'current_supply' is roughly integral of x dx.
-        // For simplicity here: Price per token = 0.0001 SOL * (Current Supply + 1).
-        // Total Cost ~ Price * Amount.
-        // REAL IMPLEMENTATION SHOULD USE BIG MATH. 
-        // We will use a simplified fixed rate for this demo: 0.01 SOL per token flat for MVP simplicity, 
-        // PROPER CURVE requires: Cost = ( (Supply + Amount)^2 - Supply^2 ) / 2 * ScalingFactor
+        // Linear Bonding Curve: Price = m * Supply
+        // m = 0.001 SOL (1,000,000 lamports)
+        // Cost = Integral(m * x dx) from S to S+A
+        // Cost = (m / 2) * ((S + A)^2 - S^2)
         
-        let price_per_token_lamports = 10_000_000; // 0.01 SOL
-        let cost = amount.checked_mul(price_per_token_lamports).unwrap();
+        let m: u128 = 1_000_000; // Slope in lamports
+        let current_supply = profile.token_supply as u128;
+        let amount_u128 = amount as u128;
+        let new_supply = current_supply.checked_add(amount_u128).ok_or(ErrorCode::Overflow)?;
+        
+        // Calculate Cost
+        // Cost = (m * (new_supply^2 - current_supply^2)) / 2
+        let term1 = new_supply.checked_mul(new_supply).ok_or(ErrorCode::Overflow)?;
+        let term2 = current_supply.checked_mul(current_supply).ok_or(ErrorCode::Overflow)?;
+        let diff = term1.checked_sub(term2).ok_or(ErrorCode::Overflow)?;
+        let cost_u128 = m.checked_mul(diff).ok_or(ErrorCode::Overflow)?.checked_div(2).ok_or(ErrorCode::Overflow)?;
+        let cost = cost_u128 as u64;
 
-        // 1. Transfer SOL from user to profile PDA
-        let cpi_context = CpiContext::new(
+        // Calculate Fee (5%)
+        let fee = cost.checked_mul(5).unwrap().checked_div(100).unwrap();
+        let _total_amount = cost.checked_add(fee).ok_or(ErrorCode::Overflow)?;
+
+        // 1. Transfer Total Cost (Cost + Fee) from user to program
+        // We transfer 'Cost' to the Artist PDA (reserve) and 'Fee' to the Platform Wallet
+        
+        // Transfer Cost to Artist PDA
+        let cpi_context_cost = CpiContext::new(
             ctx.accounts.system_program.to_account_info(),
             system_program::Transfer {
                 from: ctx.accounts.buyer.to_account_info(),
                 to: profile.to_account_info(),
             },
         );
-        system_program::transfer(cpi_context, cost)?;
+        system_program::transfer(cpi_context_cost, cost)?;
+
+        // Transfer Fee to Platform Wallet
+        let cpi_context_fee = CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            system_program::Transfer {
+                from: ctx.accounts.buyer.to_account_info(),
+                to: ctx.accounts.platform_wallet.to_account_info(),
+            },
+        );
+        system_program::transfer(cpi_context_fee, fee)?;
 
         // 2. Mint tokens to user
         let seeds = &[
@@ -60,18 +84,32 @@ pub mod sol_proj {
         token::mint_to(cpi_ctx, amount)?;
 
         // Update supply
-        profile.token_supply += amount;
+        profile.token_supply = new_supply as u64;
 
-        msg!("Bought {} tokens for {} lamports", amount, cost);
+        msg!("Bought {} tokens for {} lamports (Fee: {})", amount, cost, fee);
         Ok(())
     }
 
     pub fn sell_token(ctx: Context<SellToken>, amount: u64) -> Result<()> {
          let profile = &mut ctx.accounts.artist_profile;
 
-        // Symmetric pricing: 0.01 SOL per token
-        let price_per_token_lamports = 10_000_000; 
-        let refund = amount.checked_mul(price_per_token_lamports).unwrap();
+        // Same formula for refund
+        let m: u128 = 1_000_000;
+        let current_supply = profile.token_supply as u128;
+        let amount_u128 = amount as u128;
+        let new_supply = current_supply.checked_sub(amount_u128).ok_or(ErrorCode::Underflow)?;
+
+        // Calculate Refund
+        // Refund = (m * (current_supply^2 - new_supply^2)) / 2
+        let term1 = current_supply.checked_mul(current_supply).ok_or(ErrorCode::Overflow)?;
+        let term2 = new_supply.checked_mul(new_supply).ok_or(ErrorCode::Overflow)?;
+        let diff = term1.checked_sub(term2).ok_or(ErrorCode::Overflow)?;
+        let refund_u128 = m.checked_mul(diff).ok_or(ErrorCode::Overflow)?.checked_div(2).ok_or(ErrorCode::Overflow)?;
+        let refund = refund_u128 as u64;
+
+        // Calculate Fee (5%)
+        let fee = refund.checked_mul(5).unwrap().checked_div(100).unwrap();
+        let amount_to_user = refund.checked_sub(fee).ok_or(ErrorCode::Underflow)?;
 
         // 1. Burn tokens from user
         let cpi_accounts = Burn {
@@ -83,14 +121,20 @@ pub mod sol_proj {
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
         token::burn(cpi_ctx, amount)?;
 
-        // 2. Transfer SOL from profile PDA to user
-        **profile.to_account_info().try_borrow_mut_lamports()? -= refund;
-        **ctx.accounts.seller.to_account_info().try_borrow_mut_lamports()? += refund;
+        // 2. Transfer Refund - Fee from Profile PDA to User
+        **profile.to_account_info().try_borrow_mut_lamports()? -= amount_to_user;
+        **ctx.accounts.seller.to_account_info().try_borrow_mut_lamports()? += amount_to_user;
+
+        // 3. Transfer Fee from Profile PDA to Platform Wallet
+        if fee > 0 {
+             **profile.to_account_info().try_borrow_mut_lamports()? -= fee;
+             **ctx.accounts.platform_wallet.to_account_info().try_borrow_mut_lamports()? += fee;
+        }
 
         // Update supply
-        profile.token_supply -= amount;
+        profile.token_supply = new_supply as u64;
 
-        msg!("Sold {} tokens for {} lamports", amount, refund);
+        msg!("Sold {} tokens for {} lamports (Fee: {})", amount, amount_to_user, fee);
         Ok(())
     }
 }
@@ -147,6 +191,10 @@ pub struct BuyToken<'info> {
 
     #[account(mut)]
     pub user_token_account: Account<'info, TokenAccount>,
+    
+    /// CHECK: This is the platform fee wallet. In a real app, validate the address.
+    #[account(mut)]
+    pub platform_wallet: AccountInfo<'info>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
@@ -173,6 +221,10 @@ pub struct SellToken<'info> {
     #[account(mut)]
     pub user_token_account: Account<'info, TokenAccount>,
 
+    /// CHECK: This is the platform fee wallet. In a real app, validate the address.
+    #[account(mut)]
+    pub platform_wallet: AccountInfo<'info>,
+
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
 }
@@ -183,4 +235,12 @@ pub struct ArtistProfile {
     pub token_mint: Pubkey,
     pub token_supply: u64,
     pub profile_bump: u8,
+}
+
+#[error_code]
+pub enum ErrorCode {
+    #[msg("Math overflow.")]
+    Overflow,
+    #[msg("Math underflow.")]
+    Underflow,
 }

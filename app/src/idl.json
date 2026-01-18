@@ -58,6 +58,10 @@
           "writable": true
         },
         {
+          "name": "platform_wallet",
+          "writable": true
+        },
+        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
         },
@@ -201,6 +205,10 @@
           "writable": true
         },
         {
+          "name": "platform_wallet",
+          "writable": true
+        },
+        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
         },
@@ -230,6 +238,18 @@
         127,
         170
       ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Overflow",
+      "msg": "Math overflow."
+    },
+    {
+      "code": 6001,
+      "name": "Underflow",
+      "msg": "Math underflow."
     }
   ],
   "types": [

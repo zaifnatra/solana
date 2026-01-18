@@ -135,6 +135,7 @@ export default function SignInPage({ onLoginSuccess }) {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
+                                autoComplete="current-password"
                             />
                         </div>
 

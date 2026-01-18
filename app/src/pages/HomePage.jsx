@@ -1,17 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import ArtistCard from '../components/ArtistCard';
+import { fetchArtists } from '../utils/mockData';
 import './HomePage.css';
-
-// Mock data for followed artists
-const FOLLOWED_ARTISTS = [
-    { id: 1, name: 'Nicolas Romero', handle: '@Niccc333', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d' },
-    { id: 2, name: 'Kieran Joost', handle: '@kieranjoost', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' },
-    { id: 3, name: 'kt', handle: '@kt', avatar: 'https://i.pravatar.cc/150?u=a04258114e29026302d' },
-    { id: 4, name: 'Saymonn', handle: '@saymonn', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d' },
-];
 
 export default function HomePage() {
     const [activeTab, setActiveTab] = useState('following');
+    const [artists, setArtists] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadArtists = async () => {
+            setLoading(true);
+            const data = await fetchArtists();
+            setArtists(data);
+            setLoading(false);
+        };
+        loadArtists();
+    }, []);
+
+    // Simple filter for demo purposes
+    const displayArtists = activeTab === 'following'
+        ? artists
+        : artists.slice().reverse(); // Just reverse for "Trending" simulation
 
     return (
         <div className="home-container">
@@ -35,7 +46,7 @@ export default function HomePage() {
                     className={`tab-item ${activeTab === 'following' ? 'active' : ''}`}
                     onClick={() => setActiveTab('following')}
                 >
-                    Following <span style={{ background: '#eee', padding: '2px 6px', borderRadius: '10px', fontSize: '10px', verticalAlign: 'middle' }}>{FOLLOWED_ARTISTS.length}</span>
+                    Following <span style={{ background: '#eee', padding: '2px 6px', borderRadius: '10px', fontSize: '10px', verticalAlign: 'middle' }}>{artists.length}</span>
                 </div>
                 <div
                     className={`tab-item ${activeTab === 'trending' ? 'active' : ''}`}
@@ -47,14 +58,13 @@ export default function HomePage() {
 
             {/* Grid */}
             <div className="artists-grid">
-                {FOLLOWED_ARTISTS.map(artist => (
-                    <div key={artist.id} className="artist-card">
-                        <img src={artist.avatar} alt={artist.name} className="artist-avatar" />
-                        <h3 className="artist-name">{artist.name}</h3>
-                        <p className="artist-handle">{artist.handle}</p>
-                        <button className="view-profile-btn">View Profile</button>
-                    </div>
-                ))}
+                {loading ? (
+                    <p>Loading artists...</p>
+                ) : (
+                    displayArtists.map(artist => (
+                        <ArtistCard key={artist.id} artist={artist} onSelect={() => { }} />
+                    ))
+                )}
             </div>
 
             <Navbar />

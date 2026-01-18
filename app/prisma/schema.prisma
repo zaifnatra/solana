@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model profiles {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  wallet_address String    @unique
+  username       String?
+  avatar_url     String?
+  role           UserRole  @default(user)
+  artists        artists?  
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@index([wallet_address])
+}
+
+model artists {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile_id         String    @unique @db.Uuid
+  profile            profiles  @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+  bio                String?
+  genre              String?
+  token_mint_address String?
+  total_volume_sol   Decimal?  @default(0) @db.Decimal
+  rewards            rewards[]
+  posts              posts[]
+  created_at         DateTime  @default(now()) @db.Timestamptz(6)
+}
+
+model rewards {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  artist_id           String   @db.Uuid
+  artist              artists  @relation(fields: [artist_id], references: [id], onDelete: Cascade)
+  title               String
+  description         String?
+  min_shares_required Decimal  @default(0) @db.Decimal
+  content_url         String?
+  created_at          DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model posts {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  artist_id  String   @db.Uuid
+  artist     artists  @relation(fields: [artist_id], references: [id], onDelete: Cascade)
+  content    String
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+}
+
+enum UserRole {
+  user
+  artist
+}

@@ -6,6 +6,7 @@ import './App.css'
 import SignInPage from './pages/SignInPage'
 import HomePage from './pages/HomePage'
 import SearchPage from './pages/SearchPage'
+import RegisterPage from './pages/RegisterPage'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 import { useConnection, useAnchorWallet } from "@solana/wallet-adapter-react";
@@ -48,124 +49,6 @@ function App() {
     return <SignInPage onLoginSuccess={setSession} />
   }
 
-  const registerArtist = async () => {
-    if (!wallet) return;
-    setErrorMsg(''); setTxSig('');
-    try {
-      const program = getProgram(connection, wallet);
-      const [artistProfile] = PublicKey.findProgramAddressSync(
-        [Buffer.from("artist"), wallet.publicKey.toBuffer()],
-        program.programId
-      );
-      const [tokenMint] = PublicKey.findProgramAddressSync(
-        [Buffer.from("mint"), wallet.publicKey.toBuffer()],
-        program.programId
-      );
-
-      const tx = await program.methods.registerArtist()
-        .accounts({
-          authority: wallet.publicKey,
-          artistProfile: artistProfile,
-          tokenMint: tokenMint,
-          systemProgram: anchor.web3.SystemProgram.programId,
-          tokenProgram: TOKEN_PROGRAM_ID,
-          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-        })
-        .rpc();
-
-      console.log("Registered Artist:", tx);
-      setTxSig(tx);
-    } catch (error) {
-      console.error("Error registering:", error);
-      setErrorMsg(error.toString());
-    }
-  };
-
-  const buyToken = async () => {
-    if (!wallet) return;
-    setErrorMsg(''); setTxSig('');
-    try {
-      const program = getProgram(connection, wallet);
-
-      const artistPubkey = wallet.publicKey;
-
-      const [artistProfile] = PublicKey.findProgramAddressSync(
-        [Buffer.from("artist"), artistPubkey.toBuffer()],
-        program.programId
-      );
-      const [tokenMint] = PublicKey.findProgramAddressSync(
-        [Buffer.from("mint"), artistPubkey.toBuffer()],
-        program.programId
-      );
-
-      const userTokenAccount = getAssociatedTokenAddressSync(
-        tokenMint,
-        wallet.publicKey
-      );
-
-      const amountBN = new anchor.BN(amount);
-
-      // Note: Anchor automatically derives the associatedTokenProgram if needed, but passing explicit accounts is safer
-      const tx = await program.methods.buyToken(amountBN)
-        .accounts({
-          buyer: wallet.publicKey,
-          artistProfile: artistProfile,
-          tokenMint: tokenMint,
-          userTokenAccount: userTokenAccount,
-          systemProgram: anchor.web3.SystemProgram.programId,
-          tokenProgram: TOKEN_PROGRAM_ID,
-        })
-        .rpc();
-
-      console.log("Bought Tokens:", tx);
-      setTxSig(tx);
-    } catch (error) {
-      console.error("Error buying:", error);
-      setErrorMsg(error.toString());
-    }
-  }
-
-  const sellToken = async () => {
-    if (!wallet) return;
-    setErrorMsg(''); setTxSig('');
-    try {
-      const program = getProgram(connection, wallet);
-      const artistPubkey = wallet.publicKey;
-
-      const [artistProfile] = PublicKey.findProgramAddressSync(
-        [Buffer.from("artist"), artistPubkey.toBuffer()],
-        program.programId
-      );
-      const [tokenMint] = PublicKey.findProgramAddressSync(
-        [Buffer.from("mint"), artistPubkey.toBuffer()],
-        program.programId
-      );
-      const userTokenAccount = getAssociatedTokenAddressSync(
-        tokenMint,
-        wallet.publicKey
-      );
-
-      const amountBN = new anchor.BN(amount);
-
-      const tx = await program.methods.sellToken(amountBN)
-        .accounts({
-          seller: wallet.publicKey,
-          artistProfile: artistProfile,
-          tokenMint: tokenMint,
-          userTokenAccount: userTokenAccount,
-          systemProgram: anchor.web3.SystemProgram.programId,
-          tokenProgram: TOKEN_PROGRAM_ID,
-        })
-        .rpc();
-
-      console.log("Sold Tokens:", tx);
-      setTxSig(tx);
-    } catch (error) {
-      console.error("Error selling:", error);
-      setErrorMsg(error.toString());
-    }
-  }
-
   // Render the Login page if not authenticated
   if (!session) {
     return <SignInPage onLoginSuccess={setSession} />
@@ -175,7 +58,6 @@ function App() {
   return (
     <BrowserRouter>
       <div className="app-layout">
-        {/* Wallet connection can stay global or move to pages */}
         <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 100 }}>
           <WalletMultiButton />
         </div>
@@ -183,12 +65,8 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/register" element={<RegisterPage />} />
         </Routes>
-
-        {/* Supabase Status Debug (Optional, can hide) */}
-        {/* <div style={{ position: 'fixed', bottom: 70, right: 10, opacity: 0.5, fontSize: '10px', background: 'white', padding: 5 }}>
-             {session ? '🟢 DB Connected' : '🔴 Disconnected'}
-          </div> */}
       </div>
     </BrowserRouter>
   )
