@@ -1,8 +1,9 @@
 use anchor_lang::prelude::*;
 use anchor_lang::system_program;
 use anchor_spl::token::{self, Mint, MintTo, Burn, Token, TokenAccount};
+use anchor_spl::associated_token::AssociatedToken;
 
-declare_id!("9S4hFwHxdjnn5KHrFqxgxQJwu53hmGZ6A9EnkVsY96Va");
+declare_id!("9TRyxmjsRxghBXVknyZ4ENzckCWsAKgpS43328roSoB6");
 
 #[program]
 pub mod sol_proj {
@@ -189,7 +190,12 @@ pub struct BuyToken<'info> {
     )]
     pub token_mint: Account<'info, Mint>,
 
-    #[account(mut)]
+    #[account(
+        init_if_needed,
+        payer = buyer,
+        associated_token::mint = token_mint,
+        associated_token::authority = buyer,
+    )]
     pub user_token_account: Account<'info, TokenAccount>,
     
     /// CHECK: This is the platform fee wallet. In a real app, validate the address.
@@ -198,6 +204,7 @@ pub struct BuyToken<'info> {
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
 }
 
 #[derive(Accounts)]

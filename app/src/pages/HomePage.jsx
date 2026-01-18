@@ -41,9 +41,9 @@ export default function HomePage() {
                         <p className="hero-subtitle">Connect with your favorite artists and collectors.</p>
                     </div>
                     {/* Move Wallet Button INSIDE the layout frame - REMOVED per user request */}
-                    {/* <div style={{ pointerEvents: 'auto' }}>
-                         <WalletMultiButton />
-                    </div> */}
+                    <div style={{ pointerEvents: 'auto', zIndex: 10, position: 'relative' }}>
+                        <WalletMultiButton />
+                    </div>
                 </div>
                 {/* Overlay for readability */}
                 <div style={{

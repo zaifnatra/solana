@@ -90,6 +90,44 @@ function App() {
     }
   }
 
+  // 4. Sync Wallet with Supabase Profile
+  useEffect(() => {
+    const syncWallet = async () => {
+      if (wallet && session?.user?.id) {
+        try {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('wallet_address')
+            .eq('id', session.user.id)
+            .single();
+
+          if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows found"
+            console.error("Error fetching profile for sync:", error);
+            return;
+          }
+
+          const currentWalletAddr = wallet.publicKey.toString();
+
+          // If profile exists but has no wallet, or different wallet, update it
+          if (profile && profile.wallet_address !== currentWalletAddr) {
+            console.log("Syncing wallet to profile:", currentWalletAddr);
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({ wallet_address: currentWalletAddr })
+              .eq('id', session.user.id);
+
+            if (updateError) console.error("Failed to sync wallet:", updateError);
+            else console.log("Wallet synced successfully.");
+          }
+        } catch (err) {
+          console.error("Wallet sync failed:", err);
+        }
+      }
+    };
+
+    syncWallet();
+  }, [wallet, session]);
+
   // Render the Login page if not authenticated
   if (!session) {
     return <SignInPage onLoginSuccess={setSession} />

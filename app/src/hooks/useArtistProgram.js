@@ -1,7 +1,7 @@
 import { useConnection, useAnchorWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from '@solana/web3.js';
 import * as anchor from "@coral-xyz/anchor";
-import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { getProgram } from "../utils/anchor";
 import { useMemo } from "react";
 
@@ -16,6 +16,15 @@ export function useArtistProgram() {
 
     const registerArtist = async (username, genre) => {
         if (!program || !wallet) throw new Error("Wallet not connected");
+        console.log("Registering Artist on cluster:", connection.rpcEndpoint);
+
+        try {
+            // Check blockhash
+            const latestBlockhash = await connection.getLatestBlockhash();
+            console.log("Latest blockhash from app connection:", latestBlockhash);
+        } catch (e) {
+            console.error("Failed to fetch blockhash manually:", e);
+        }
 
         const [artistProfile] = PublicKey.findProgramAddressSync(
             [Buffer.from("artist"), wallet.publicKey.toBuffer()],
@@ -60,7 +69,7 @@ export function useArtistProgram() {
 
         // Platform fee wallet - hardcoded for hackathon/demo
         // In production this should be a config or ENV
-        const platformWallet = new PublicKey("11111111111111111111111111111111"); // Replace with real one or user's wallet for test
+        const platformWallet = new PublicKey("7i4y4j4NwphNWJ92SGEEF1vToojQ9LLWGjccQawi56fm"); // Replace with real one or user's wallet for test
 
         const amountBN = new anchor.BN(amount);
 
@@ -73,6 +82,7 @@ export function useArtistProgram() {
                 platformWallet: platformWallet, // Added this param
                 systemProgram: anchor.web3.SystemProgram.programId,
                 tokenProgram: TOKEN_PROGRAM_ID,
+                associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             })
             .rpc();
 
@@ -98,7 +108,7 @@ export function useArtistProgram() {
         );
 
         // Platform fee wallet
-        const platformWallet = new PublicKey("11111111111111111111111111111111");
+        const platformWallet = new PublicKey("7i4y4j4NwphNWJ92SGEEF1vToojQ9LLWGjccQawi56fm");
 
         const amountBN = new anchor.BN(amount);
 

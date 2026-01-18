@@ -66,16 +66,9 @@ describe("sol_proj", () => {
     // Create Associated Token Account for buyer
     const userTokenAccount = getAssociatedTokenAddressSync(tokenMint, buyer.publicKey);
 
-    const txCreate = new Transaction().add(
-      createAssociatedTokenAccountInstruction(
-        buyer.publicKey, // payer
-        userTokenAccount, // ata
-        buyer.publicKey, // owner
-        tokenMint // mint
-      )
-    );
-
-    await provider.sendAndConfirm(txCreate, [buyer]);
+    // ATA creation is now handled by the smart contract via init_if_needed
+    // const txCreate = new Transaction().add(...);
+    // await provider.sendAndConfirm(txCreate, [buyer]);
 
     const amount = new anchor.BN(10);
 
@@ -88,6 +81,7 @@ describe("sol_proj", () => {
         platformWallet: platformWallet.publicKey,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       })
       .signers([buyer])
       .rpc();
