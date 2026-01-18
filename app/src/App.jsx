@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage'
 import SearchPage from './pages/SearchPage'
 import RegisterPage from './pages/RegisterPage'
 import OnboardingPage from './pages/OnboardingPage'
+import MintNFTPage from './pages/MintNFTPage'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 import { useConnection, useAnchorWallet } from "@solana/wallet-adapter-react";
@@ -156,6 +157,7 @@ function App() {
           <Route path="/" element={isOnboarded ? <HomePage /> : <Navigate to="/onboarding" />} />
           <Route path="/search" element={isOnboarded ? <SearchPage /> : <Navigate to="/onboarding" />} />
           <Route path="/register" element={isOnboarded ? <RegisterPage /> : <Navigate to="/onboarding" />} />
+          <Route path="/mint-nft" element={isOnboarded ? <MintNFTPage /> : <Navigate to="/onboarding" />} />
         </Routes>
       </div>
     </BrowserRouter>
