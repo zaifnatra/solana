@@ -27,7 +27,7 @@ echo "› validator ($program_id), log: $STATE/validator.log"
 solana-test-validator --reset --quiet --ledger "$STATE/staging-ledger" \
     --bpf-program "$program_id" "$ENGINE/target/deploy/sol_proj.so" >"$STATE/validator.log" 2>&1 &
 validator=$!
-trap 'kill $validator 2>/dev/null; wait $validator 2>/dev/null' EXIT
+trap 'kill $validator 2>/dev/null; wait $validator 2>/dev/null || true' EXIT
 
 for _ in $(seq 60); do healthy && break; kill -0 $validator 2>/dev/null || { cat "$STATE/validator.log"; exit 1; }; sleep 0.5; done
 healthy || { echo "Validator did not start in 30 s"; exit 1; }
