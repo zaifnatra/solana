@@ -16,7 +16,7 @@ const idl = JSON.parse(readFileSync(new URL('../engine/target/idl/sol_proj.json'
 const s = createStaging({ idl, rpcUrl: process.env.RPC_URL ?? 'http://127.0.0.1:8899' });
 
 if (!(await s.programDeployed())) {
-    console.error(`Program ${s.program.programId} is not deployed at ${s.connection.rpcEndpoint}. Run: cd engine && anchor localnet`);
+    console.error(`Program ${s.program.programId} is not deployed at ${s.connection.rpcEndpoint}. Use npm run e2e, or npm run up`);
     process.exit(2);
 }
 const result = await runScenario(s, {

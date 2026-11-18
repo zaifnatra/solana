@@ -1,5 +1,7 @@
 # MTL Minted
 
+[![CI](https://github.com/zaifnatra/solana/actions/workflows/ci.yml/badge.svg)](https://github.com/zaifnatra/solana/actions/workflows/ci.yml)
+
 Artist tokens on Solana. An artist launches a token, and fans buy it to support them. The price follows a bonding curve, so every token can always be sold back to the artist's reserve.
 
 We built the first version at McHacks 13, and it won the MLH Solana challenge. We wanted a way for fans to back artists without turning art into a pump-and-dump. This repo is the cleaned-up version, and we work on it for fun.
@@ -53,6 +55,10 @@ cd staging && npm run up
 ```
 
 `npm run e2e` exits with `0` if every trade succeeds and the reserve returns to exactly the rent minimum after everyone sells. It also prints the compute units for each instruction, so you can compare two versions of the engine. Use `npm run e2e -- --seed 7 --trades 200` to change the run.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). CI runs the web build and the full engine e2e test on every pull request.
 
 ## What's next
 

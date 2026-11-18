@@ -90,7 +90,7 @@ export default function App() {
             </header>
 
             {deployed === false && (
-                <p className="card warn">Program not found. Run <code>cd engine && anchor localnet</code>, then reload.</p>
+                <p className="card warn">Program not found. Start staging with <code>cd staging && npm run up</code>.</p>
             )}
             {busy && <p className="status">{busy}</p>}
 
