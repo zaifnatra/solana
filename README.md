@@ -5,6 +5,7 @@
 | Folder | What it is | Run |
 |---|---|---|
 | `engine/` | Tokenization engine. Anchor program in Rust. The bonding curve math is in `programs/sol_proj/src/curve.rs` and has no Solana dependencies. | `cd engine && cargo test` · `anchor build` |
+| `staging/` | Developer UI and headless scenario CLI that run the real engine on a local validator and report compute units, fees, and solvency checks. See `.agents/skills/engine-staging/SKILL.md`. | `cd engine && anchor localnet` · `cd staging && npm run dev` / `npm run scenario` |
 | `web/` | React + Vite frontend. Uses mock data. It talks to the engine only through `web/src/engine/index.js`. | `cd web && npm install && npm run dev` |
 
 The web app does not call the on-chain program yet. To connect it, replace the mock functions in `web/src/engine/index.js`. Set `VITE_RPC_URL` to choose the cluster.
