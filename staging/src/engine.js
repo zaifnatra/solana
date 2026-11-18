@@ -114,10 +114,17 @@ export function createStaging({ idl, rpcUrl, operator = Keypair.generate() }) {
     };
 }
 
-/** Funds the operator and the platform wallet. The platform wallet must be rent-exempt to receive fees. */
+/**
+ * Funds the operator, and tops up the platform wallet to the rent minimum.
+ * A system account below the rent minimum cannot receive the small fee transfers.
+ */
 export async function prepare(s) {
     await s.fund(s.operator.publicKey, 10);
-    if ((await s.connection.getBalance(s.platform)) === 0) await s.fund(s.platform, 1);
+    const [balance, rentMin] = await Promise.all([
+        s.connection.getBalance(s.platform),
+        s.connection.getMinimumBalanceForRentExemption(0),
+    ]);
+    if (balance < rentMin) await s.fund(s.platform, 1);
 }
 
 // Small seeded PRNG, so two runs with the same seed make the same trades.

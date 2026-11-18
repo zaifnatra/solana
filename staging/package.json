@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "up": "./run.sh up",
+    "e2e": "./run.sh e2e",
     "scenario": "node scenario.js"
   },
   "dependencies": {
