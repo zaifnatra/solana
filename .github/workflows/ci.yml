@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  engine:
+    runs-on: ubuntu-latest
+    env:
+      SOLANA_VERSION: v2.3.13
+      ANCHOR_VERSION: 0.32.1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: staging/package-lock.json
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: engine
+
+      # rustup on the runner reads engine/rust-toolchain.toml and installs the pinned version.
+      - name: Curve unit tests
+        working-directory: engine
+        run: cargo test
+
+      - name: Install Solana CLI and Anchor
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/$SOLANA_VERSION/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+          mkdir -p "$HOME/.local/bin"
+          curl -sSfL -o "$HOME/.local/bin/anchor" \
+            "https://github.com/solana-foundation/anchor/releases/download/v$ANCHOR_VERSION/anchor-$ANCHOR_VERSION-x86_64-unknown-linux-gnu"
+          chmod +x "$HOME/.local/bin/anchor"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install staging
+        working-directory: staging
+        run: npm ci
+
+      # Builds the program, starts a fresh validator, runs a seeded scenario, checks solvency.
+      - name: End-to-end scenario
+        working-directory: staging
+        run: npm run e2e -- --trades 100
+
+      - name: Build staging UI
+        working-directory: staging
+        run: npm run build
+
+      - name: Validator log
+        if: failure()
+        run: tail -n 100 engine/.anchor/validator.log || true
