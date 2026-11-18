@@ -70,3 +70,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). CI runs the web build and the full engin
 
 - Background video (`web/public/images/background.mp4`) by xtalcalx.
 - Artist names and photos in `web/` are demo placeholders. They belong to their owners.
+
+## License
+
+[MIT](LICENSE). The background video and the artist photos are not covered. See Credits.
