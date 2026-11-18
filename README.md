@@ -1,85 +1,66 @@
 # MTL Minted
 
+Artist tokens on Solana. An artist launches a token, and fans buy it to support them. The price follows a bonding curve, so every token can always be sold back to the artist's reserve.
+
+We built the first version at McHacks 13, and it won the MLH Solana challenge. We wanted a way for fans to back artists without turning art into a pump-and-dump. This repo is the cleaned-up version, and we work on it for fun.
+
+## How the engine works
+
+The engine is an Anchor program in `engine/`. Each artist has a profile account (a PDA) that holds the token supply and a SOL reserve, and controls the artist's token mint.
+
+```mermaid
+flowchart LR
+    A[Artist] -- register_artist --> P[("Artist profile PDA<br/>supply + SOL reserve")]
+    P -. mint authority .-> M[Artist token mint]
+    S[Supporter] -- "buy_token(n): cost + 5% fee" --> P
+    P -- "mint n tokens" --> S
+    S -- "sell_token(n): burn n tokens" --> P
+    P -- "refund − 5% fee" --> S
+    P -- "5% fee" --> F[Platform wallet]
+```
+
+- The price of the next token is `0.001 SOL × supply`.
+- Buying `n` tokens costs the area under that line: `0.001 × ((s + n)² − s²) / 2` SOL. The cost goes into the reserve.
+- Selling refunds the same area, so the reserve always covers every token in circulation.
+- A 5% fee on each trade goes to a fixed platform wallet. The program rejects any other fee address.
+
+The curve math is in `engine/programs/sol_proj/src/curve.rs`. It is plain Rust with unit tests, so you can change it without a validator.
+
 ## Repository layout
 
-| Folder | What it is | Run |
-|---|---|---|
-| `engine/` | Tokenization engine. Anchor program in Rust. The bonding curve math is in `programs/sol_proj/src/curve.rs` and has no Solana dependencies. | `cd engine && cargo test` · `anchor build` |
-| `staging/` | Developer UI and headless scenario CLI that run the real engine on a local validator and report compute units, fees, and solvency checks. See `.agents/skills/engine-staging/SKILL.md`. | `cd engine && anchor localnet` · `cd staging && npm run dev` / `npm run scenario` |
-| `web/` | React + Vite frontend. Uses mock data. It talks to the engine only through `web/src/engine/index.js`. | `cd web && npm install && npm run dev` |
+| Folder | What it is |
+|---|---|
+| `engine/` | The Anchor program (Rust). |
+| `staging/` | A test dashboard and a scenario runner. They run the real engine on a local validator. |
+| `web/` | The React app that users see. It uses mock data and is not connected to the engine yet. Its only link to the engine is `web/src/engine/index.js`. |
 
-The web app does not call the on-chain program yet. To connect it, replace the mock functions in `web/src/engine/index.js`. Set `VITE_RPC_URL` to choose the cluster.
+## Run it
 
-## Inspiration
+You need Node 20 or later. For the engine you also need Rust, the [Solana CLI](https://solana.com/docs/intro/installation) (2.3.x), and Anchor 0.32.1.
 
-We love art and are deeply interested in crypto and decentralized finance.  
-A lot of talented artists struggle to find sustainable ways to fund their work
-We wanted to explore how blockchain technology could empower artists **without turning art into pure speculation**.
+```bash
+# Frontend
+cd web && npm install && npm run dev
 
----
+# Curve unit tests
+cd engine && cargo test
 
-## What It Does
+# Full engine test: build, start a fresh validator, run 50 random trades, check solvency
+cd staging && npm run e2e
 
-**MTL Minted** is a platform that allows artists to:
+# Same setup, but opens the staging dashboard at http://localhost:5174
+cd staging && npm run up
+```
 
-- Mint and tokenize their creative identity on the Solana blockchain  
-- Release **badges and fractional tokens** for supporters and donors  
-- Build a transparent, on-chain history of support and engagement  
+`npm run e2e` exits with `0` if every trade succeeds and the reserve returns to exactly the rent minimum after everyone sells. It also prints the compute units for each instruction, so you can compare two versions of the engine. Use `npm run e2e -- --seed 7 --trades 200` to change the run.
 
-Supporters receive digital badges or tokenized shares as a way to **show support**, not to promote pump-and-dump speculation.
+## What's next
 
----
+- Connect `web/` to the engine with a client generated from the IDL.
+- Tune the curve and lower compute units, using `staging/` to measure.
+- Partner with Montreal artists.
 
-## How We Built It
+## Credits
 
-- **Blockchain:** Solana  
-- **Smart Contracts:** Rust + Anchor  
-- **Frontend:** React + Vite  
-- **Wallet Integration:** Solana wallets for minting and transaction history  
-
-We set up a local Solana blockchain environment, connected wallets and implemented token minting and transfers entirely on-chain.
-
----
-
-## Challenges We Faced
-
-- **Solana setup complexity:**  
-  Setting up the Solana development environment for the first time was challenging, especially interacting directly with Rust-based smart contracts.
-
-- **Crypto & art grey areas:**  
-  Designing a system around art, NFTs, and tokenization without encouraging speculative behaviour or unethical investment mechanics required careful thought. Maybe too careful (haha time...)
-
-- **Scope management:**  
-  Our original vision was far more ambitious than what we could realistically build during the hackathon.
-
----
-
-## Accomplishments We’re Proud Of
-
-- Successfully setting up a **local Solana blockchain environment**
-- Linking wallets and maintaining **on-chain transaction history**
-- Enabling artists to:
-  - Mint their own tokens  
-  - Sell **fractional tokenized shares** to supporters  
-
-Seeing real transactions work end-to-end was a huge win for us.
-
----
-
-## What We Learned
-
-- Don’t bite off more than you can chew
-- Blockchain development has a steep learning curve, especially with Rust  
-- Simpler, well-executed ideas often beat over-engineered ones  
-
-We learned to adapt quickly and focus on delivering a functional core product.
-
----
-
-## What’s Next for Us
-
-- Partnering with **local Montreal artists**  
-- Helping artists kickstart projects or receive long-term support  
-- Creating better incentives for artists to consistently share content and grow their audience  
-
-Our goal is to build a sustainable, artist-first platform that uses blockchain responsibly.
+- Background video (`web/public/images/background.mp4`) by xtalcalx.
+- Artist names and photos in `web/` are demo placeholders. They belong to their owners.

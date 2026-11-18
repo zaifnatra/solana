@@ -39,8 +39,12 @@ export default function App() {
         setDeployed(await staging.programDeployed());
         if (!session) return setView(null);
         const st = await staging.state(session.artist.publicKey);
+        if (!st) { // ledger was reset: the stored session no longer exists
+            localStorage.removeItem('staging-session');
+            return setSession(null);
+        }
         const holdings = await Promise.all(session.buyers.map((b) => staging.holdings(session.artist.publicKey, b.publicKey)));
-        setView(st && { ...st, holdings });
+        setView({ ...st, holdings });
     }, [staging, session]);
 
     useEffect(() => { refresh().catch((e) => setBusy(`RPC error: ${e.message}`)); }, [refresh]);
