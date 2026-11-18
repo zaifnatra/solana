@@ -3,7 +3,8 @@
 import * as anchor from '@coral-xyz/anchor';
 import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram } from '@solana/web3.js';
 
-const { BN, Program, AnchorProvider, utils } = anchor;
+// Node 22 CJS interop misses some named exports (BN). Fall back to the default export.
+const { BN, Program, AnchorProvider, utils } = anchor.BN ? anchor : anchor.default;
 
 // Must match PLATFORM_WALLET in engine/programs/sol_proj/src/lib.rs.
 // Used only if the IDL does not carry the fixed address.
