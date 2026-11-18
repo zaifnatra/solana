@@ -1,3 +1,14 @@
+# MTL Minted
+
+## Repository layout
+
+| Folder | What it is | Run |
+|---|---|---|
+| `engine/` | Tokenization engine. Anchor program in Rust. The bonding curve math is in `programs/sol_proj/src/curve.rs` and has no Solana dependencies. | `cd engine && cargo test` · `anchor build` |
+| `web/` | React + Vite frontend. Uses mock data. It talks to the engine only through `web/src/engine/index.js`. | `cd web && npm install && npm run dev` |
+
+The web app does not call the on-chain program yet. To connect it, replace the mock functions in `web/src/engine/index.js`. Set `VITE_RPC_URL` to choose the cluster.
+
 ## Inspiration
 
 We love art and are deeply interested in crypto and decentralized finance.  
