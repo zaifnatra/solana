@@ -4,7 +4,7 @@
 
 Artist tokens on Solana. An artist launches a token, and fans buy it to support them. The price follows a bonding curve, so every token can always be sold back to the artist's reserve.
 
-We built the first version at McHacks 13, and it won the MLH Solana challenge. We wanted a way for fans to back artists without turning art into a pump-and-dump. This repo is the cleaned-up version, and we work on it for fun.
+We built the first version at McHacks 13, and it won the MLH Solana challenge. We wanted a way for fans to back artists without turning art into a pump-and-dump. This repo is the cleaned-up version, and we work on it for fun sparingly.
 
 ## How the engine works
 
@@ -31,7 +31,7 @@ The curve math is in `engine/programs/sol_proj/src/curve.rs`. It is plain Rust w
 ## Repository layout
 
 | Folder | What it is |
-|---|---|
+| --- | --- |
 | `engine/` | The Anchor program (Rust). |
 | `staging/` | A test dashboard and a scenario runner. They run the real engine on a local validator. |
 | `web/` | The React app that users see. It uses mock data and is not connected to the engine yet. Its only link to the engine is `web/src/engine/index.js`. |
