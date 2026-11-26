@@ -1,35 +1,54 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { formatSol, getQuote, placeOrder, validQuantity } from '../engine';
 import { useTrading } from '../state/TradingContext';
 import GlassDialog from './GlassDialog';
+import './TradeDialog.css';
 
 export default function TradeDialog({ intent }) {
   const { token, createAccount, account, pending, storePending, reload, setTradeIntent } =
     useTrading();
+  const navigate = useNavigate();
+  const quantityId = useId();
+  const [amount, setAmount] = useState(String(intent.quantity));
+  const [revision, setRevision] = useState(0);
   const [quote, setQuote] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [receipt, setReceipt] = useState(null);
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
   const lock = useRef(false);
-  const { symbol, side, quantity } = pending || intent;
+  const { symbol, side } = pending || intent;
+  const quantity = pending?.quantity ?? amount;
+  const quantityValid = validQuantity(quantity);
   const seconds = quote ? Math.max(0, quote.expires_at - now) : 0;
   const close = () => setTradeIntent(null);
   useEffect(() => {
     let active = true;
     if (token && !pending && !receipt && validQuantity(quantity)) {
-      getQuote(token, { symbol, side, quantity: Number(quantity) })
-        .then((result) => {
-          if (active) setQuote(result);
-        })
-        .catch((failure) => {
-          if (active) setError(failure.message);
-        });
+      const timer = setTimeout(
+        () =>
+          getQuote(token, { symbol, side, quantity: Number(quantity) })
+            .then((result) => {
+              if (active) {
+                setQuote(result);
+                setNow(Math.floor(Date.now() / 1000));
+              }
+            })
+            .catch((failure) => {
+              if (active) setError(failure.message);
+            }),
+        250,
+      );
+      return () => {
+        active = false;
+        clearTimeout(timer);
+      };
     }
     return () => {
       active = false;
     };
-  }, [token, pending, receipt, symbol, side, quantity]);
+  }, [token, pending, receipt, symbol, side, quantity, revision]);
   useEffect(() => {
     const timer = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
     return () => clearInterval(timer);
@@ -48,21 +67,24 @@ export default function TradeDialog({ intent }) {
       lock.current = false;
     }
   }
-  async function refreshQuote() {
-    setBusy(true);
+  function refreshQuote() {
+    setQuote(null);
     setError('');
-    try {
-      setQuote(await getQuote(token, { symbol, side, quantity: Number(quantity) }));
-      setNow(Math.floor(Date.now() / 1000));
-    } catch (failure) {
-      setQuote(null);
-      setError(failure.message);
-    } finally {
-      setBusy(false);
-    }
+    setRevision((value) => value + 1);
+  }
+  function changeQuantity(value) {
+    if (busy || pending || value === amount) return;
+    setAmount(value);
+    setQuote(null);
+    setError('');
   }
   async function confirm() {
-    if (lock.current || (!pending && (!quote || seconds <= 0))) return;
+    if (
+      lock.current ||
+      (!pending &&
+        (!quote || seconds <= 0 || !quantityValid || quote.quantity !== Number(quantity)))
+    )
+      return;
     lock.current = true;
     setBusy(true);
     setError('');
@@ -108,6 +130,48 @@ export default function TradeDialog({ intent }) {
       onClose={close}
       busy={busy}
     >
+      {token && !pending && !receipt && (
+        <div className="trade-quantity-editor">
+          <label htmlFor={quantityId}>Tokens to {side}</label>
+          <div className="trade-quantity-row">
+            <input
+              id={quantityId}
+              type="number"
+              inputMode="numeric"
+              min="1"
+              max="10000"
+              step="1"
+              value={amount}
+              disabled={busy}
+              aria-invalid={!quantityValid}
+              aria-describedby={!quantityValid ? `${quantityId}-error` : undefined}
+              onChange={(event) => changeQuantity(event.target.value)}
+            />
+            <div className="trade-quantity-presets" aria-label="Quick quantities">
+              {(side === 'sell' && held > 0
+                ? [
+                    { label: 'Half', value: Math.max(1, Math.min(10000, Math.floor(held / 2))) },
+                    { label: held > 10000 ? '10,000' : 'All', value: Math.min(10000, held) },
+                  ]
+                : [1, 10, 100].map((value) => ({ label: String(value), value }))
+              ).map((preset) => (
+                <button
+                  key={preset.label}
+                  disabled={busy}
+                  onClick={() => changeQuantity(String(preset.value))}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {!quantityValid && (
+            <p id={`${quantityId}-error`} className="service-error">
+              Enter 1–10,000 whole tokens.
+            </p>
+          )}
+        </div>
+      )}
       {!token ? (
         <>
           <p className="service-muted">
@@ -129,6 +193,15 @@ export default function TradeDialog({ intent }) {
           </p>
           <p>{formatSol(receipt.total_lamports)} paper SOL · fee included</p>
           <span className="receipt-id">Receipt {receipt.id}</span>
+          <button
+            className="service-button"
+            onClick={() => {
+              close();
+              navigate('/my-tokens');
+            }}
+          >
+            View portfolio
+          </button>
           <button className="service-button" onClick={close}>
             Done
           </button>
@@ -196,6 +269,8 @@ export default function TradeDialog({ intent }) {
             Quote expires in {seconds}s. If the price moves past your limit, the trade is rejected.
           </p>
         </>
+      ) : !quantityValid ? (
+        <p className="service-muted">Choose a quantity to see your total, including fees.</p>
       ) : !error ? (
         <p role="status" className="service-muted">
           Getting your quote…

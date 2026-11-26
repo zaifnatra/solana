@@ -9,6 +9,8 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
 }
 
 .header-title {
@@ -135,4 +137,13 @@ button.dropdown-item:hover {
   .paper-indicator {
     font-size: 0.52rem;
   }
+}
+.app-header > div:first-child {
+  min-width: 0;
+}
+.header-title {
+  overflow-wrap: anywhere;
+}
+.header-actions {
+  flex-shrink: 0;
 }

@@ -1,5 +1,6 @@
 import './App.css';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import SearchPage from './pages/SearchPage';
 import ProfilePage from './pages/ProfilePage';
 import FriendsPage from './pages/FriendsPage';
@@ -21,6 +22,10 @@ function ActiveTrade() {
 }
 
 function AppRoutes() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
   const { token } = useTrading();
   return (
     <Routes key={token}>

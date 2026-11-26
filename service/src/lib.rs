@@ -25,6 +25,7 @@ use uuid::Uuid;
 #[rustfmt::skip]
 pub mod curve;
 mod artists;
+mod portfolio;
 
 pub const INITIAL_CASH: u64 = 100_000_000_000;
 pub const MAX_SUPPLY: u64 = 100_000;
@@ -291,16 +292,12 @@ async fn markets(State(state): State<AppState>) -> Result<Json<Value>> {
 }
 async fn account(State(state): State<AppState>, headers: HeaderMap) -> Result<Json<Value>> {
     let hash = token_hash(&headers)?;
-    state.run(move |db| {
-        let (id,cash) = authenticate(db,&hash)?;
-        let mut stmt = db.prepare("SELECT h.symbol,h.quantity,m.supply FROM holdings h JOIN markets m USING(symbol) WHERE account_id=?1 AND quantity>0 ORDER BY h.symbol")?;
-        let holdings = stmt.query_map([id], |r| {
-            let quantity: u64 = r.get(1)?;
-            let gross = curve::sell_refund(r.get(2)?,quantity).unwrap();
-            Ok(json!({"symbol":r.get::<_,String>(0)?, "quantity":quantity, "liquidation_lamports":gross-curve::fee(gross)}))
-        })?.collect::<std::result::Result<Vec<_>,_>>()?;
-        Ok(Json(json!({"cash_lamports":cash, "holdings":holdings, "mode":"paper"})))
-    }).await
+    state
+        .run(move |db| {
+            let (id, cash) = authenticate(db, &hash)?;
+            portfolio::account(db, &id, cash).map(Json)
+        })
+        .await
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]

@@ -23,7 +23,7 @@ bounds keep response amounts within JavaScript's safe integer range.
 | GET | `/feed` | Bearer | Followed artists and their latest 100 releases |
 | GET | `/markets` | No | Symbols, artist metadata, supply, reserve, next-token price |
 | POST | `/sessions` | No | New paper account, 100 paper SOL, bearer token |
-| GET | `/account` | Bearer | Cash and holdings with net liquidation estimates |
+| GET | `/account` | Bearer | Cash, holdings, fee-inclusive cost basis and portfolio performance |
 | POST | `/quotes` | Bearer | Fee-inclusive quote, valid for 30 seconds |
 | POST | `/orders` | Bearer | Atomically execute an order, return a receipt |
 | GET | `/orders` | Bearer | Your latest 100 fills, newest first |
@@ -39,6 +39,32 @@ privately. Send `Authorization: Bearer <token>` on authenticated requests. The s
 stores only its SHA-256 hash. There is no recovery or cross-device identity system;
 losing a token loses access to that paper account. API clients are responsible for securely retaining the token.
 Do not log tokens or put them in URLs. TLS is required for remote access.
+
+## Portfolio performance
+
+`GET /account` retains `cash_lamports`, `holdings`, and `mode`. Holdings add
+`cost_basis_lamports`, `realized_pnl_lamports`, `unrealized_pnl_lamports`, and
+`history_complete`. Liquidation value is the current curve sell refund after fees.
+
+The `performance` object includes `starting_balance_lamports`,
+`holdings_value_lamports`, `portfolio_value_lamports`, `total_change_lamports`,
+`cost_basis_lamports`, `realized_pnl_lamports`, `unrealized_pnl_lamports`,
+`history_complete`, and `cost_basis_method: "average_cost"`.
+
+Accounting reads the complete committed ledger, including closed positions and
+trades older than the latest 100 displayed receipts. Buys add their fee-inclusive
+debit to cost basis. Each partial sell allocates `floor(basis × sold / held)`;
+the rounding remainder stays with the remaining tokens. A full exit consumes
+all remaining basis. Realized return uses net sale proceeds after fees.
+For complete history, realized plus unrealized return equals portfolio value
+minus the starting balance exactly. Signed returns are integer lamports.
+
+If legacy balances cannot reconcile with their receipts, affected cost basis and
+returns are `null` with `history_complete: false`; current balances and liquidation
+estimates remain available. Values are estimates, not guaranteed execution prices.
+There is no schema migration for these additive fields. Same-second fills use
+SQLite insertion order; preserve the database with the supplied SQLite backup
+workflow rather than reconstructing trades in a different insertion order.
 
 ## Review and execute
 

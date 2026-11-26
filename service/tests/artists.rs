@@ -506,6 +506,12 @@ async fn migration_retains_legacy_funds_and_creates_existing_account_profiles() 
     assert_eq!(account["cash_lamports"], 99_947_500_000u64);
     assert_eq!(account["holdings"][0]["symbol"], "ECHO");
     assert_eq!(account["holdings"][0]["quantity"], 10);
+    // An imported holding without receipts has an unknown purchase basis.
+    assert_eq!(account["performance"]["history_complete"], false);
+    assert!(account["performance"]["realized_pnl_lamports"].is_null());
+    assert!(account["performance"]["cost_basis_lamports"].is_null());
+    assert!(account["holdings"][0]["unrealized_pnl_lamports"].is_null());
+    assert_eq!(account["performance"]["total_change_lamports"], -5_000_000);
     let markets = call(&app, "GET", "/api/v1/markets", "", Value::Null)
         .await
         .1;

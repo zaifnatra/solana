@@ -157,3 +157,114 @@
   padding-bottom: 100px;
   gap: 30px;
 }
+
+.discover-filters,
+.discover-results-summary {
+  max-width: 600px;
+  margin: 14px auto 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.discover-filters label {
+  flex: 1;
+  min-width: 0;
+}
+.discover-filters label > span {
+  display: block;
+  margin: 0 0 5px 2px;
+  color: #fff;
+  font-size: 0.75rem;
+  text-shadow: 0 1px 4px #000;
+}
+.discover-filters select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.4);
+  color: #eee;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  color-scheme: dark;
+}
+.discover-filters select:focus-visible {
+  outline: none;
+  border-color: #646cff;
+  box-shadow: 0 0 0 4px rgba(100, 108, 255, 0.2);
+}
+.discover-filters option {
+  background: #111;
+  color: #eee;
+}
+.discover-results-summary {
+  justify-content: space-between;
+  min-height: 36px;
+  margin-top: 8px;
+  color: #aaa;
+  font-size: 0.8rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+.discover-results-summary > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #eee;
+  background: rgba(30, 30, 30, 0.6);
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+.discover-results-summary button,
+.search-results .empty-state button {
+  border-radius: 20px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+.discover-empty-icon {
+  display: block;
+  font-size: 3rem;
+  opacity: 0.8;
+  margin-bottom: 12px;
+}
+.discover-loading {
+  display: grid;
+  gap: 30px;
+}
+.discover-placeholder {
+  display: flex;
+  min-height: 220px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(30, 30, 30, 0.6);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+.discover-placeholder-image {
+  flex: 0 0 35%;
+  background: rgba(255, 255, 255, 0.1);
+}
+.discover-placeholder-content {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.discover-placeholder-content span {
+  height: 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.discover-placeholder-content span:first-child {
+  width: 60%;
+  height: 24px;
+}
+.discover-placeholder-content span:last-child {
+  margin-top: auto;
+  height: 36px;
+}
