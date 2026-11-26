@@ -37,6 +37,7 @@ try {
     await page.getByRole('combobox', { name: 'Genre', exact: true }).selectOption({ label: 'Jazz' });
     await page.getByRole('combobox', { name: 'Sort by', exact: true }).selectOption('price-high');
     await page.getByRole('article', { name: 'Blue Note', exact: true }).waitFor();
+    await card().waitFor({ state: 'detached' });
     assert.equal(await page.getByRole('article').count(), 1, 'Genre narrows the artist directory');
     assert.equal(new URL(page.url()).searchParams.get('genre'), 'Jazz');
     await page.getByRole('link', { name: 'View Blue Note', exact: true }).click();
@@ -50,6 +51,7 @@ try {
     await page.getByRole('button', { name: 'Reset filters', exact: true }).click();
     await card().waitFor();
     await page.getByRole('combobox', { name: 'Sort by', exact: true }).selectOption('name');
+    await page.getByRole('article').first().getByRole('heading', { name: 'Blue Note', exact: true }).waitFor();
     assert.equal(await page.getByRole('article').first().getAttribute('aria-label'), 'Blue Note');
     await page.getByPlaceholder('Search for artists...').fill('no-matching-demo-artist');
     await page.getByRole('heading', { name: 'No artists found', exact: true }).waitFor();
