@@ -150,7 +150,9 @@ export default function TradeDialog({ intent }) {
             <div className="trade-quantity-presets" aria-label="Quick quantities">
               {(side === 'sell' && held > 0
                 ? [
-                    { label: 'Half', value: Math.max(1, Math.min(10000, Math.floor(held / 2))) },
+                    ...(held >= 2 && held <= 20000
+                      ? [{ label: 'Half', value: Math.floor(held / 2) }]
+                      : []),
                     { label: held > 10000 ? '10,000' : 'All', value: Math.min(10000, held) },
                   ]
                 : [1, 10, 100].map((value) => ({ label: String(value), value }))

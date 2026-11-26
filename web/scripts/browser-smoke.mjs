@@ -141,6 +141,11 @@ try {
     await page.getByRole('article', { name: 'Kinji', exact: true }).waitFor();
     await card().getByText(/^1\s*TOKENS$/).waitFor();
     assert.match(await card().innerText(), /1\s*TOKENS/);
+    await page.getByRole('region', { name: 'Kinji position', exact: true }).getByRole('button', { name: 'Sell tokens', exact: true }).click();
+    assert.equal(await dialog().getByRole('button', { name: 'Half', exact: true }).count(), 0, 'A one-token holding has no half-sale preset');
+    await dialog().getByRole('button', { name: 'All', exact: true }).click();
+    await dialog().getByText('1 KINJI', { exact: true }).waitFor();
+    await dialog().getByRole('button', { name: 'Close dialog', exact: true }).click();
     await navigate('Discover', '/');
     await trade('sell', 1);
 
