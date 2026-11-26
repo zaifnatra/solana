@@ -14,6 +14,7 @@ let activePage = page;
 page.on('pageerror', error => errors.push(error.message));
 const card = () => page.getByRole('article', { name: 'Kinji', exact: true });
 const dialog = () => page.getByRole('dialog');
+const quoteQuantity = quantity => dialog().locator('.quote-list > div').filter({ has: page.getByText('Quantity', { exact: true }) }).getByText(`${quantity} KINJI`, { exact: true });
 async function navigate(name, path, target = page) {
     await target.getByRole('link', { name, exact: true }).click();
     await target.waitForURL(url => url.pathname === path);
@@ -81,9 +82,9 @@ try {
     await dialog().getByText('Enter 1–10,000 whole tokens.', { exact: true }).waitFor();
     assert.equal(await dialog().getByRole('button', { name: 'Confirm buy', exact: true }).count(), 0);
     await dialog().getByLabel('Tokens to buy', { exact: true }).fill('2');
-    await dialog().getByText('2 KINJI', { exact: true }).waitFor();
+    await quoteQuantity(2).waitFor();
     await dialog().getByRole('button', { name: '10', exact: true }).click();
-    await dialog().getByText('10 KINJI', { exact: true }).waitFor();
+    await quoteQuantity(10).waitFor();
     // Selecting the current preset must not discard the quote indefinitely.
     await dialog().getByRole('button', { name: '10', exact: true }).click();
     await dialog().getByRole('button', { name: 'Confirm buy', exact: true }).click();
@@ -99,9 +100,9 @@ try {
     await page.getByRole('region', { name: 'Portfolio performance', exact: true }).waitFor();
     await page.getByRole('region', { name: 'Kinji position', exact: true }).getByRole('button', { name: 'Sell tokens', exact: true }).click();
     await dialog().getByRole('button', { name: 'Half', exact: true }).click();
-    await dialog().getByText('5 KINJI', { exact: true }).waitFor();
+    await quoteQuantity(5).waitFor();
     await dialog().getByRole('button', { name: 'All', exact: true }).click();
-    await dialog().getByText('10 KINJI', { exact: true }).waitFor();
+    await quoteQuantity(10).waitFor();
     await dialog().getByRole('button', { name: 'Close dialog', exact: true }).click();
     await navigate('Discover', '/');
     await trade('sell', 10);
@@ -146,7 +147,7 @@ try {
     await page.getByRole('region', { name: 'Kinji position', exact: true }).getByRole('button', { name: 'Sell tokens', exact: true }).click();
     assert.equal(await dialog().getByRole('button', { name: 'Half', exact: true }).count(), 0, 'A one-token holding has no half-sale preset');
     await dialog().getByRole('button', { name: 'All', exact: true }).click();
-    await dialog().getByText('1 KINJI', { exact: true }).waitFor();
+    await quoteQuantity(1).waitFor();
     await dialog().getByRole('button', { name: 'Close dialog', exact: true }).click();
     await navigate('Discover', '/');
     await trade('sell', 1);
