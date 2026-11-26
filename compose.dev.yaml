@@ -1,0 +1,36 @@
+name: mtl-dev
+services:
+  api:
+    build:
+      context: .
+      target: rust-dev
+    init: true
+    volumes:
+      - .:/workspace:ro
+      - rust-target:/workspace/service/target
+      - cargo-cache:/cargo
+      - dev-data:/data
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      RUST_LOG: mtl_service=debug,tower_http=debug
+    stop_grace_period: 30s
+  web:
+    build:
+      context: .
+      target: web-dev
+    init: true
+    volumes:
+      - ./web:/workspace/web
+      - node-modules:/workspace/web/node_modules
+    ports:
+      - "127.0.0.1:5173:5173"
+    environment:
+      MTL_API_PROXY: http://api:8080
+    depends_on:
+      - api
+volumes:
+  rust-target:
+  cargo-cache:
+  node-modules:
+  dev-data:

@@ -1,90 +1,149 @@
 @import './WalletOverrides.css';
 
 .app-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    /* background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); */
-    position: sticky;
-    top: 0;
-    z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  /* background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
 }
 
 .header-title {
-    font-size: 1.5rem;
-    font-weight: 800;
-    margin: 0;
-    color: white;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+  color: white;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .profile-menu-container {
-    position: relative;
-    z-index: 102;
-    /* Above backdrop */
+  position: relative;
+  z-index: 102;
+  /* Above backdrop */
 }
 
 .profile-icon-btn {
-    background: transparent;
-    border: none;
-    color: white;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 50%;
-    transition: background 0.2s;
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  transition: background 0.2s;
 }
 
 .profile-icon-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .profile-dropdown {
-    position: absolute;
-    top: 40px;
-    right: 0;
-    width: 150px;
-    background: #111;
-    border: 1px solid #333;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    overflow: hidden;
-    animation: fadeIn 0.2s ease;
+  position: absolute;
+  top: 40px;
+  right: 0;
+  width: 150px;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  animation: fadeIn 0.2s ease;
 }
 
 .dropdown-item {
-    display: block;
-    text-decoration: none;
-    padding: 12px 16px;
-    font-size: 0.9rem;
-    color: #eee;
-    cursor: pointer;
-    transition: background 0.2s;
+  display: block;
+  text-decoration: none;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  color: #eee;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
 .dropdown-item:hover {
-    background: #222;
+  background: #222;
 }
 
 .dropdown-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 101;
-    background: transparent;
-    cursor: default;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 101;
+  background: transparent;
+  cursor: default;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.header-title {
+  line-height: 1.25;
+}
+.profile-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+button.dropdown-item {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  box-shadow: none;
+}
+button.dropdown-item:hover {
+  background: #222;
+}
+.profile-icon-btn:focus-visible,
+.dropdown-item:focus-visible {
+  outline: 2px solid #646cff;
+  outline-offset: 2px;
+}
+@media (max-width: 480px) {
+  .app-header {
+    padding: 16px;
+    gap: 8px;
+  }
+  .header-title {
+    font-size: 1.2rem;
+  }
+  .header-actions {
+    gap: 8px;
+  }
+  .header-actions .wallet-adapter-button-trigger {
+    padding: 0 12px !important;
+    font-size: 12px !important;
+  }
+  .paper-indicator {
+    font-size: 0.52rem;
+  }
+}
+.app-header > div:first-child {
+  min-width: 0;
+}
+.header-title {
+  overflow-wrap: anywhere;
+}
+.header-actions {
+  flex-shrink: 0;
 }

@@ -1,0 +1,97 @@
+# Run with: docker compose --env-file deploy/production.env -f compose.production.yaml up -d --wait
+# The image must already be published. Pin it by immutable digest for upgrades/rollbacks.
+name: mtl-production
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+services:
+  mtl:
+    image: "${MTL_IMAGE:?Set MTL_IMAGE to a published image digest}"
+    environment:
+      MTL_MAX_ACCOUNTS: "${MTL_MAX_ACCOUNTS:-10000}"
+      RUST_LOG: mtl_service=info,tower_http=info
+    volumes:
+      - mtl-data:/data
+    networks:
+      - backend
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 128
+    stop_grace_period: 30s
+    logging: *logging
+  gateway:
+    image: nginx:1.28-alpine
+    entrypoint: [nginx, -g, "daemon off;"]
+    user: "101:101"
+    cap_drop: [ALL]
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      proxy:
+        ipv4_address: 172.30.251.11
+      backend:
+    depends_on:
+      mtl:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+    security_opt: [no-new-privileges:true]
+    mem_limit: 64m
+    cpus: 0.5
+    pids_limit: 64
+    logging: *logging
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8080/readyz]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  caddy:
+    image: caddy:2.11-alpine
+    environment:
+      MTL_DOMAIN: "${MTL_DOMAIN:?Set the public hostname}"
+      ACME_EMAIL: "${ACME_EMAIL:?Set the TLS contact email}"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      proxy:
+        ipv4_address: 172.30.251.10
+    depends_on:
+      gateway:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 64
+    logging: *logging
+volumes:
+  mtl-data:
+    name: "${MTL_DATA_VOLUME:-mtl-production-data}"
+  caddy-data:
+  caddy-config:
+networks:
+  backend:
+    internal: true
+  proxy:
+    ipam:
+      config:
+        - subnet: 172.30.251.0/24

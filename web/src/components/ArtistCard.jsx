@@ -1,175 +1,128 @@
-import React, { useState } from 'react';
-import { buyToken, sellToken } from '../engine';
+import { useId, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { formatSol, validQuantity } from '../engine';
+import { useTrading } from '../state/TradingContext';
 import './ArtistCard.css';
 
-const ArtistCard = ({ artist, onSelect, showActions = true, balance }) => {
-    const [amount, setAmount] = useState('10');
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState('');
-
-    const handleBuy = async (e) => {
-        e.stopPropagation(); // Prevent card select
-        setLoading(true);
-        setMessage('');
-        try {
-            await buyToken(artist.walletAddress, amount);
-            setMessage(`Bought ${amount} shares!`);
-        } catch (error) {
-            console.error(error);
-            setMessage('Error buying shares');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleSell = async (e) => {
-        e.stopPropagation();
-        setLoading(true);
-        setMessage('');
-        try {
-            await sellToken(artist.walletAddress, amount);
-            setMessage(`Sold ${amount} shares!`);
-        } catch (error) {
-            console.error(error);
-            setMessage('Error selling shares');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className="artist-card" onClick={() => onSelect && onSelect(artist)}>
-            {/* Image Section (Left) */}
-            <div style={{
-                width: '35%',
-                height: '100%',
-                backgroundColor: '#222',
-                backgroundImage: artist.image ? `url(${artist.image})` : 'linear-gradient(135deg, #1a1a1a 0%, #333 100%)',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-            }}>
-                {!artist.image && <span style={{ fontSize: '3rem', opacity: 0.5 }}>🎵</span>}
-            </div>
-
-            {/* Content Section (Right) */}
-            <div style={{
-                flex: 1,
-                padding: '1.5rem',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                textAlign: 'left'
-            }}>
-                <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <h3 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '700' }}>{artist.name}</h3>
-                        <span className="badge" style={{ background: 'rgba(100, 108, 255, 0.2)', color: '#aab0ff', padding: '4px 8px', borderRadius: '8px', fontSize: '0.8rem' }}>{artist.genre}</span>
-                    </div>
-
-                    <p style={{
-                        fontSize: '0.95em',
-                        color: '#ddd',
-                        margin: 0,
-                        lineHeight: '1.5',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden'
-                    }}>{artist.description}</p>
-                </div>
-
-                {/* Balance Display (Mock) */}
-                {balance !== undefined && (
-                    <div style={{
-                        marginTop: 'auto',
-                        paddingTop: '15px',
-                        borderTop: '1px solid rgba(255,255,255,0.1)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                    }}>
-                        <span style={{ color: '#aaa', fontSize: '0.9rem' }}>Your Balance</span>
-                        <span style={{
-                            fontSize: '1.2rem',
-                            fontWeight: 'bold',
-                            color: '#4CAF50',
-                            textShadow: '0 0 10px rgba(76, 175, 80, 0.3)'
-                        }}>
-                            {balance} TOKENS
-                        </span>
-                    </div>
-                )}
-
-                {showActions && (
-                    <>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9em', fontWeight: '600', marginBottom: '12px', color: '#eee', marginTop: balance ? '10px' : '0' }}>
-                            <span>Price: {artist.sharePrice.toFixed(4)} SOL</span>
-                            <span>{artist.supporters} Supporters</span>
-                        </div>
-
-                        <div className="trade-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
-                            {/* Custom Input with Swapped Arrows: Down on Top, Up on Bottom */}
-                            <div className="custom-input-wrapper" onClick={e => e.stopPropagation()}>
-                                <input
-                                    className="custom-number-input"
-                                    type="number"
-                                    value={amount}
-                                    onChange={(e) => setAmount(e.target.value)}
-                                />
-                                <div className="spin-btn-col">
-                                    {/* TOP BUTTON: UP / INCREMENT */}
-                                    <button
-                                        className="spin-btn"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setAmount(prev => ((parseInt(prev) || 0) + 1).toString());
-                                        }}
-                                    >
-                                        ▲
-                                    </button>
-
-                                    {/* BOTTOM BUTTON: DOWN / DECREMENT */}
-                                    <button
-                                        className="spin-btn"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setAmount(prev => Math.max(0, (parseInt(prev) || 0) - 1).toString());
-                                        }}
-                                    >
-                                        ▼
-                                    </button>
-                                </div>
-                            </div>
-                            <button onClick={handleBuy} disabled={loading} style={{
-                                flex: 1,
-                                height: '36px', // explicit height
-                                background: 'linear-gradient(45deg, #4CAF50, #45a049)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                borderRadius: '8px', border: 'none', cursor: 'pointer', color: 'white', fontWeight: 'bold'
-                            }}>
-                                {loading ? '...' : 'Buy'}
-                            </button>
-                            <button onClick={handleSell} disabled={loading} style={{
-                                flex: 1,
-                                height: '36px', // explicit height
-                                background: 'rgba(255, 255, 255, 0.1)',
-                                border: '1px solid rgba(255,255,255,0.2)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                borderRadius: '8px', cursor: 'pointer', color: 'white', fontWeight: 'bold'
-                            }}>
-                                {loading ? '...' : 'Sell'}
-                            </button>
-                        </div>
-                        {message && <div style={{ fontSize: '0.8em', marginTop: '10px', textAlign: 'center', color: message.includes('Error') ? '#ff6b6b' : '#4cd964' }}>{message}</div>}
-                    </>
-                )}
-            </div>
+export default function ArtistCard({ artist, showActions = true, balance }) {
+  const location = useLocation();
+  const returnTo = { from: location.pathname + location.search };
+  const [amount, setAmount] = useState('10');
+  const [error, setError] = useState('');
+  const inputId = useId();
+  const { pending, setTradeIntent } = useTrading();
+  function trade(side) {
+    if (!validQuantity(amount)) {
+      setError('Enter 1–10,000 whole tokens.');
+      return;
+    }
+    setError('');
+    setTradeIntent({
+      symbol: artist.symbol,
+      side,
+      quantity: Number(amount),
+      key: crypto.randomUUID(),
+    });
+  }
+  const url = `/artists/${encodeURIComponent(artist.symbol)}`;
+  return (
+    <article className="artist-card" aria-label={artist.name}>
+      <Link
+        to={url}
+        state={returnTo}
+        className="artist-image-link"
+        aria-label={`View ${artist.name}`}
+      >
+        {artist.image_url ? (
+          <img src={artist.image_url} alt="" loading="lazy" />
+        ) : (
+          <span aria-hidden="true">🎵</span>
+        )}
+      </Link>
+      <div className="artist-card-content">
+        <div>
+          <div className="artist-card-heading">
+            <h3>
+              <Link to={url} state={returnTo}>
+                {artist.name}
+              </Link>
+            </h3>
+            <span className="artist-genre">{artist.genre}</span>
+          </div>
+          <p className="artist-description">{artist.description}</p>
         </div>
-    );
-};
-
-export default ArtistCard;
+        {balance !== undefined && (
+          <div className="artist-balance">
+            <span>Your balance</span>
+            <strong>{balance} TOKENS</strong>
+          </div>
+        )}
+        {showActions && (
+          <>
+            <div className="artist-market-row">
+              <span>Price: {formatSol(artist.next_token_lamports)} SOL</span>
+              <span>{artist.follower_count || 0} Followers</span>
+            </div>
+            <div className="trade-actions">
+              <div className="custom-input-wrapper">
+                <label className="sr-only" htmlFor={inputId}>
+                  {artist.name} token quantity
+                </label>
+                <input
+                  id={inputId}
+                  className="custom-number-input"
+                  type="number"
+                  min="1"
+                  max="10000"
+                  step="1"
+                  value={amount}
+                  onChange={(event) => {
+                    setAmount(event.target.value);
+                    setError('');
+                  }}
+                />
+                <div className="spin-btn-col">
+                  <button
+                    className="spin-btn"
+                    aria-label={`Increase ${artist.name} quantity`}
+                    onClick={() =>
+                      setAmount((value) =>
+                        String(Math.min(10000, Math.max(0, parseInt(value) || 0) + 1)),
+                      )
+                    }
+                  >
+                    ▲
+                  </button>
+                  <button
+                    className="spin-btn"
+                    aria-label={`Decrease ${artist.name} quantity`}
+                    onClick={() =>
+                      setAmount((value) => String(Math.max(1, (parseInt(value) || 1) - 1)))
+                    }
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
+              <button className="card-buy" onClick={() => trade('buy')} disabled={Boolean(pending)}>
+                Buy
+              </button>
+              <button
+                className="card-sell"
+                onClick={() => trade('sell')}
+                disabled={Boolean(pending)}
+              >
+                Sell
+              </button>
+            </div>
+            {error && (
+              <p className="card-trade-error" role="alert">
+                {error}
+              </p>
+            )}
+          </>
+        )}
+      </div>
+    </article>
+  );
+}

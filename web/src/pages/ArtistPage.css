@@ -1,0 +1,28 @@
+.artist-back {
+  color: #ddd;
+  font-size: 0.9rem;
+}
+.artist-about-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+.artist-about-heading button {
+  font-size: 0.8rem;
+  padding: 8px 12px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+.artist-bio {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #ddd;
+  line-height: 1.7;
+}
+.artist-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.9rem;
+}
