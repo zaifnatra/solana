@@ -12,3 +12,4 @@ node_modules
 /deploy/production.env
 **/__pycache__/
 *.pyc
+/web/test-results/

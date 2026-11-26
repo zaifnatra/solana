@@ -1,5 +1,6 @@
 // Run only against a disposable paper service. Creates accounts and places paper trades.
 import assert from 'node:assert/strict';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 const baseURL = process.env.MTL_TEST_URL || 'http://127.0.0.1:8080';
@@ -12,12 +13,17 @@ const page = await context.newPage();
 page.on('pageerror', error => errors.push(error.message));
 const card = () => page.getByRole('article', { name: 'Kinji', exact: true });
 const dialog = () => page.getByRole('dialog');
+async function navigate(name, path, target = page) {
+    await target.getByRole('link', { name, exact: true }).click();
+    await target.waitForURL(url => url.pathname === path);
+}
 async function trade(side, quantity) {
     await card().getByRole('spinbutton').fill(String(quantity));
     await card().getByRole('button', { name: side === 'buy' ? 'Buy' : 'Sell', exact: true }).click();
     await dialog().getByRole('button', { name: `Confirm ${side}`, exact: true }).click();
     await dialog().getByRole('status').filter({ hasText: `${side === 'buy' ? 'Bought' : 'Sold'} ${quantity} KINJI tokens.` }).waitFor();
     await dialog().getByRole('button', { name: 'Done', exact: true }).click();
+    await dialog().waitFor({ state: 'hidden' });
 }
 try {
     await page.goto(baseURL);
@@ -35,7 +41,7 @@ try {
     await page.getByRole('button', { name: 'Open profile menu', exact: true }).click();
     await page.getByRole('link', { name: 'Profile', exact: true }).click();
     await page.waitForURL('**/profile');
-    await page.getByRole('link', { name: 'Discover', exact: true }).click();
+    await navigate('Discover', '/');
 
     for (const amount of ['0', '-5', '1.5', '']) {
         await card().getByRole('spinbutton').fill(amount);
@@ -49,12 +55,14 @@ try {
     await dialog().getByRole('button', { name: 'Confirm buy', exact: true }).click();
     await dialog().getByRole('status').filter({ hasText: 'Bought 10 KINJI tokens.' }).waitFor();
     await dialog().getByRole('button', { name: 'Done', exact: true }).click();
-    await page.getByRole('link', { name: 'Wallet', exact: true }).click();
+    await dialog().waitFor({ state: 'hidden' });
+    await navigate('Wallet', '/my-tokens');
     await page.getByRole('article', { name: 'Kinji', exact: true }).waitFor();
     await page.reload();
     await page.getByRole('article', { name: 'Kinji', exact: true }).waitFor();
-    assert.match(await page.getByRole('article', { name: 'Kinji', exact: true }).innerText(), /10\s*TOKENS/);
-    await page.getByRole('link', { name: 'Discover', exact: true }).click();
+    await card().getByText(/^10\s*TOKENS$/).waitFor();
+    assert.match(await card().innerText(), /10\s*TOKENS/);
+    await navigate('Discover', '/');
     await trade('sell', 10);
 
     // Check clipping geometrically, not just scrollWidth (the old UI hid overflow).
@@ -89,14 +97,16 @@ try {
     await dialog().getByRole('button', { name: 'Check order result', exact: true }).click();
     await dialog().getByRole('status').filter({ hasText: 'Bought 1 KINJI tokens.' }).waitFor();
     await dialog().getByRole('button', { name: 'Done', exact: true }).click();
-    await page.getByRole('link', { name: 'Wallet', exact: true }).click();
+    await dialog().waitFor({ state: 'hidden' });
+    await navigate('Wallet', '/my-tokens');
     await page.getByRole('article', { name: 'Kinji', exact: true }).waitFor();
-    assert.match(await page.getByRole('article', { name: 'Kinji', exact: true }).innerText(), /1\s*TOKENS/);
-    await page.getByRole('link', { name: 'Discover', exact: true }).click();
+    await card().getByText(/^1\s*TOKENS$/).waitFor();
+    assert.match(await card().innerText(), /1\s*TOKENS/);
+    await navigate('Discover', '/');
     await trade('sell', 1);
 
     await page.setViewportSize({ width: 1440, height: 1000 });
-    await page.getByRole('link', { name: 'Me', exact: true }).click();
+    await navigate('Me', '/profile');
     await page.getByLabel('Display name', { exact: true }).fill('Browser smoke creator');
     await page.getByLabel('About you', { exact: true }).fill('A persistent test profile.');
     await page.getByRole('button', { name: 'Save profile', exact: true }).click();
@@ -132,7 +142,7 @@ try {
     await follower.getByRole('button', { name: 'Start paper account', exact: true }).waitFor({ state: 'hidden' });
     await follower.getByRole('button', { name: 'Follow artist', exact: true }).click();
     await follower.getByRole('button', { name: 'Following', exact: true }).waitFor();
-    await follower.getByRole('link', { name: 'Friends', exact: true }).click();
+    await navigate('Friends', '/friends', follower);
     await follower.getByRole('heading', { name: 'First demo release', exact: true }).waitFor();
     await follower.reload();
     await follower.getByRole('heading', { name: 'First demo release', exact: true }).waitFor();
@@ -142,6 +152,12 @@ try {
 
     assert.deepEqual(errors, [], 'No browser runtime errors');
     console.log('Browser smoke passed: validation, buy/sell, persisted holdings, responsive controls, uncertain-order recovery, profile persistence, creator registration, release publication, follow/feed isolation.');
+} catch (error) {
+    console.error('Browser smoke failed at:', page.url());
+    await mkdir('test-results', { recursive: true });
+    await page.screenshot({ path: 'test-results/browser-smoke-failure.png', fullPage: true }).catch(() => {});
+    await writeFile('test-results/browser-smoke-failure.txt', await page.locator('body').innerText()).catch(() => {});
+    throw error;
 } finally {
     await browser.close();
 }
