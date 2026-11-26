@@ -77,7 +77,6 @@ function useFields(initial, rules) {
         setValues((old) => ({ ...old, [name]: value }));
         setErrors((old) => ({ ...old, [name]: old[name] ? rules[name](value) : '' }));
       },
-      onBlur: (event) => setErrors((old) => ({ ...old, [name]: rules[name](event.target.value) })),
     };
   }
   return {
