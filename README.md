@@ -6,6 +6,25 @@ An open-source artist discovery and token experiment. The web app connects to a 
 
 **The hosted app is paper trading.** Connecting a wallet does not send transactions or move real SOL. Paper account access is saved in the browser; clearing its storage loses access.
 
+## Open source and hosted
+
+The [hosted demo](https://mtl-minted.duckdns.org/) runs the same web frontend and
+Rust service that are in this repository. You can contribute locally, build your
+own Docker image, or self-host a separate instance with its own data.
+
+| What you want to do | From a checkout of this repository |
+|---|---|
+| Work on the frontend and API with hot reload | `make dev` → http://localhost:5173 |
+| Build and run the complete app locally | `make up` → http://localhost:8080 |
+| Build your own image | `make image` → `mtl-minted:local` |
+| Host a public instance | Follow [the production setup](docs/DEPLOYMENT.md) using `compose.production.yaml` |
+
+The Dockerfile, Compose files, deployment templates and CI workflows are public
+alongside the application source. Local development uses your own database and
+runs on your machine. Each hosted instance keeps its environment configuration,
+credentials, database and backups private; example configuration is included in
+the repository. See [Contributing](CONTRIBUTING.md) for the development workflow.
+
 We built the first version at McHacks 13, and it won the MLH Solana challenge. We wanted a way for fans to back artists without turning art into a pump-and-dump. This repo is the cleaned-up version, and we work on it for fun.
 
 ## How the engine works
@@ -42,7 +61,7 @@ The curve math is in `engine/programs/sol_proj/src/curve.rs`. It is plain Rust w
 
 ## Run it
 
-With Docker Engine and Compose v2:
+With Docker Engine or Docker Desktop and the Compose plugin:
 
 ```bash
 # Development: Vite + Rust rebuild watcher, isolated persistent data
@@ -83,8 +102,8 @@ rent minimum after everyone sells. See the staging scripts for seed/trade option
 
 ## Deploy
 
-Use a single persistent host for SQLite. A new DigitalOcean Droplet with Compose
-is the proposed starting point; see the [cost and sizing plan](docs/DIGITALOCEAN_PLAN.md)
+Use a single persistent host for SQLite. The hosted demo runs on an Ubuntu
+DigitalOcean Droplet with Compose; see the [cost and sizing plan](docs/DIGITALOCEAN_PLAN.md)
 and [deployment, upgrades, and recovery](docs/DEPLOYMENT.md).
 
 CI prepares multiarchitecture GHCR images with build provenance and SBOMs.
@@ -101,7 +120,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). CI checks Rust, the web build, container
 ## What's next
 
 - Add explicit on-chain settlement through a generated IDL client, with wallet-signature and devnet testing.
-- Add recoverable authentication before paper accounts need to survive browser storage loss.
+- Add price history and shareable collections for listeners.
 - Tune the curve and lower compute units, using `staging/` to measure.
 - Partner with Montreal artists.
 

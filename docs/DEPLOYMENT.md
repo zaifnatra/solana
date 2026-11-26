@@ -74,7 +74,7 @@ produce version tags; every image receives a full Git SHA tag. Stable releases a
 update `latest`. Use the **immutable digest printed in the workflow summary** for
 deployment and rollback, rather than a moving `latest` tag.
 
-Publishing has not been performed by this setup. The repository maintainer must
+When publishing from a fork, its maintainer must
 make the GHCR package **public** in its package settings if anonymous pulls are
 wanted; repository visibility alone does not guarantee package visibility. Public
 GHCR images support anonymous pulls. Private packages require registry authentication.
