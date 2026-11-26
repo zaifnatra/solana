@@ -1,0 +1,19 @@
+{
+    email {$ACME_EMAIL}
+    admin off
+}
+
+{$MTL_DOMAIN} {
+    encode zstd gzip
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy no-referrer
+        X-Frame-Options DENY
+        Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' https:; connect-src 'self' https: wss:; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+        -Server
+    }
+    reverse_proxy gateway:8080 {
+        # Overwrite client input. Nginx trusts only this container's fixed private IP.
+        header_up X-MTL-Client-IP {remote_host}
+    }
+}

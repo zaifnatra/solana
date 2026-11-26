@@ -1,0 +1,65 @@
+[
+  {
+    "test": "search",
+    "query": "KINJI",
+    "headings": [
+      "Discover",
+      "Kinji"
+    ],
+    "empty": false
+  },
+  {
+    "test": "search",
+    "query": "House",
+    "headings": [
+      "Discover",
+      "Kaytranada"
+    ],
+    "empty": false
+  },
+  {
+    "test": "search",
+    "query": "@blue_sax",
+    "headings": [
+      "Discover",
+      "Blue Note"
+    ],
+    "empty": false
+  },
+  {
+    "test": "search",
+    "query": "no-such-artist",
+    "headings": [
+      "Discover"
+    ],
+    "empty": true
+  },
+  {
+    "test": "search",
+    "query": " Kinji ",
+    "headings": [
+      "Discover"
+    ],
+    "empty": true
+  },
+  {
+    "test": "invalid buy",
+    "amount": "0",
+    "result": "Bought 0 shares!"
+  },
+  {
+    "test": "invalid buy",
+    "amount": "-5",
+    "result": "Bought -5 shares!"
+  },
+  {
+    "test": "invalid buy",
+    "amount": "1.5",
+    "result": "Bought 1.5 shares!"
+  },
+  {
+    "test": "invalid buy",
+    "amount": "",
+    "result": "Bought shares!"
+  }
+]

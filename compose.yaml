@@ -1,0 +1,33 @@
+# Local production-style build. For hot reload: compose.dev.yaml.
+# For public TLS deployment of a published image: compose.production.yaml.
+services:
+  mtl:
+    build:
+      context: .
+      target: runtime
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      MTL_MAX_ACCOUNTS: "${MTL_MAX_ACCOUNTS:-10000}"
+      RUST_LOG: mtl_service=info,tower_http=info
+    volumes:
+      - mtl-data:/data
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    stop_grace_period: 30s
+volumes:
+  mtl-data:

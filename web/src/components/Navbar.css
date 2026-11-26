@@ -1,55 +1,55 @@
 .bottom-navbar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 60px;
-    background-color: #000;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    z-index: 1000;
-    padding-bottom: env(safe-area-inset-bottom);
-    margin: 0;
-    border: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    /* Visual distinction */
-    outline: none;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.8);
-    /* a bit stronger shadow */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background-color: #000;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 1000;
+  padding-bottom: env(safe-area-inset-bottom);
+  margin: 0;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  /* Visual distinction */
+  outline: none;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.8);
+  /* a bit stronger shadow */
 }
 
 .nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    color: #666;
-    /* Dim gray for inactive */
-    font-size: 0.75rem;
-    font-weight: 500;
-    gap: 4px;
-    width: 100%;
-    height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #666;
+  /* Dim gray for inactive */
+  font-size: 0.75rem;
+  font-weight: 500;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
 }
 
 .nav-item path {
-    stroke: #666;
-    /* Dim gray icons */
-    transition: stroke 0.2s;
+  stroke: #666;
+  /* Dim gray icons */
+  transition: stroke 0.2s;
 }
 
 .nav-item.active {
-    color: #fff;
-    /* White for active */
+  color: #fff;
+  /* White for active */
 }
 
 .nav-item.active path {
-    stroke: #fff;
+  stroke: #fff;
 }
 
 .nav-item:hover {
-    background-color: #111;
-    /* Subtle dark hover */
+  background-color: #111;
+  /* Subtle dark hover */
 }

@@ -1,0 +1,32 @@
+.profile-intro {
+  text-align: center;
+  padding: 12px 20px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+.profile-intro img {
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 20px;
+}
+.profile-intro h2 {
+  overflow-wrap: anywhere;
+}
+.creator-action {
+  padding: 10px 20px;
+  background: linear-gradient(45deg, #ffd700, #ffa500);
+  border: none;
+  border-radius: 20px;
+  color: #000;
+  font-weight: 700;
+}
+.creator-action:hover {
+  background: linear-gradient(45deg, #ffd700, #ffa500);
+}
+.service-form fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+}
