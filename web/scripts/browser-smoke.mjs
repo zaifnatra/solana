@@ -10,6 +10,7 @@ const context = await browser.newContext({ viewport: { width: 1440, height: 1000
 context.setDefaultTimeout(15000);
 context.setDefaultNavigationTimeout(30000);
 const page = await context.newPage();
+let activePage = page;
 page.on('pageerror', error => errors.push(error.message));
 const card = () => page.getByRole('article', { name: 'Kinji', exact: true });
 const dialog = () => page.getByRole('dialog');
@@ -135,11 +136,14 @@ try {
     followerContext.setDefaultTimeout(15000);
     followerContext.setDefaultNavigationTimeout(30000);
     const follower = await followerContext.newPage();
+    activePage = follower;
     follower.on('pageerror', error => errors.push(error.message));
     await follower.goto(`${baseURL}/artists/${symbol}`);
     await follower.getByRole('button', { name: 'Follow artist', exact: true }).click();
     await follower.getByRole('button', { name: 'Start paper account', exact: true }).click();
-    await follower.getByRole('button', { name: 'Start paper account', exact: true }).waitFor({ state: 'hidden' });
+    // The button changes to Creating account… before signup completes.
+    // Wait for the whole unauthenticated panel to disappear instead.
+    await follower.getByRole('heading', { name: 'Make it your collection.', exact: true }).waitFor({ state: 'hidden' });
     await follower.getByRole('button', { name: 'Follow artist', exact: true }).click();
     await follower.getByRole('button', { name: 'Following', exact: true }).waitFor();
     await navigate('Friends', '/friends', follower);
@@ -148,15 +152,16 @@ try {
     await follower.getByRole('heading', { name: 'First demo release', exact: true }).waitFor();
     await follower.getByRole('button', { name: 'Unfollow Smoke Test Collective', exact: true }).click();
     await follower.getByRole('heading', { name: 'First demo release', exact: true }).waitFor({ state: 'hidden' });
+    activePage = page;
     await followerContext.close();
 
     assert.deepEqual(errors, [], 'No browser runtime errors');
     console.log('Browser smoke passed: validation, buy/sell, persisted holdings, responsive controls, uncertain-order recovery, profile persistence, creator registration, release publication, follow/feed isolation.');
 } catch (error) {
-    console.error('Browser smoke failed at:', page.url());
+    console.error('Browser smoke failed at:', activePage.url());
     await mkdir('test-results', { recursive: true });
-    await page.screenshot({ path: 'test-results/browser-smoke-failure.png', fullPage: true }).catch(() => {});
-    await writeFile('test-results/browser-smoke-failure.txt', await page.locator('body').innerText()).catch(() => {});
+    await activePage.screenshot({ path: 'test-results/browser-smoke-failure.png', fullPage: true }).catch(() => {});
+    await writeFile('test-results/browser-smoke-failure.txt', await activePage.locator('body').innerText()).catch(() => {});
     throw error;
 } finally {
     await browser.close();
