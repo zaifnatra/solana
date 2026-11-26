@@ -59,8 +59,11 @@ release process. Cargo and npm use their checked-in lockfiles.
 
 ## Public images for open-source users
 
-The **Container image** GitHub workflow builds `linux/amd64` and `linux/arm64`
-images, with SBOM and provenance attestations. It publishes only on a GitHub Release
+The **Container image** GitHub workflow builds images with SBOM and provenance
+attestations. Pull requests build `linux/amd64`. Manual runs default to
+`linux/amd64` for x86 Droplets and offer a combined `linux/amd64,linux/arm64`
+option; GitHub Releases build both. ARM64 emulation makes the first combined
+build substantially slower. It publishes only on a GitHub Release
 or an explicit manual run with **publish=true**. Pull requests build and test without
 publishing. The workflow verifies the application and a restored backup before
 publication. It uses the repository-scoped `GITHUB_TOKEN`, not a stored registry
