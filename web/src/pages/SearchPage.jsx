@@ -47,13 +47,17 @@ export default function SearchPage() {
   const hasFilters = Boolean(query || genre || sort !== 'default');
   const initialLoading = loading && !artists.length;
   function updateParam(key, value, replace = false) {
-    const next = new URLSearchParams(params);
+    // Router renders can lag consecutive input events. Read the committed URL
+    // so a fast filter change cannot restore a previous search value.
+    const next = new URLSearchParams(window.location.search);
     if (value) next.set(key, value);
     else next.delete(key);
     setParams(next, { replace });
   }
   function resetFilters() {
-    const next = new URLSearchParams(params);
+    // Router renders can lag consecutive input events. Read the committed URL
+    // so a fast filter change cannot restore a previous search value.
+    const next = new URLSearchParams(window.location.search);
     ['q', 'genre', 'sort'].forEach((key) => next.delete(key));
     setParams(next);
   }
