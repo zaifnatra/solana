@@ -25,6 +25,7 @@ use uuid::Uuid;
 #[rustfmt::skip]
 pub mod curve;
 mod artists;
+pub mod audit;
 mod portfolio;
 
 pub const INITIAL_CASH: u64 = 100_000_000_000;
@@ -91,7 +92,7 @@ impl AppState {
         )?;
         let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
         let version: u32 = tx.query_row("PRAGMA user_version", [], |r| r.get(0))?;
-        if version > 2 {
+        if version > 3 {
             return Err(invalid("Database schema is newer than this service"));
         }
         if version < 1 {
@@ -100,6 +101,11 @@ impl AppState {
         if version < 2 {
             tx.execute_batch(include_str!("../migrations/002.sql"))?;
         }
+        if version < 3 {
+            tx.execute_batch(include_str!("../migrations/003.sql"))?;
+            audit::backfill(&tx).map_err(audit::api_error)?;
+        }
+        audit::check_database(&tx).map_err(audit::api_error)?;
         tx.commit()?;
         Ok(Self {
             db: Arc::new(Mutex::new(db)),
@@ -159,6 +165,7 @@ pub fn router(state: AppState) -> Router {
         .route("/api/v1/account", get(account))
         .route("/api/v1/quotes", post(quote))
         .route("/api/v1/orders", post(order).get(orders))
+        .route("/api/v1/audit", get(audit::export))
         .route(
             "/api/{*path}",
             get(|| async { ApiError(StatusCode::NOT_FOUND, "Unknown API endpoint") }),
@@ -384,7 +391,8 @@ pub struct OrderRequest {
     pub expires_at: u64,
     pub idempotency_key: String,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Trade {
     pub id: String,
     pub symbol: String,
@@ -527,6 +535,7 @@ fn execute(db: &mut Connection, hash: &str, request: OrderRequest) -> Result<Tra
     };
     tx.execute("INSERT INTO trades(id,account_id,idempotency_key,request_json,symbol,side,quantity,gross_lamports,fee_lamports,total_lamports,created_at) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",
         params![trade.id,account_id,request.idempotency_key,serialized,trade.symbol,trade.side,trade.quantity,trade.gross_lamports,trade.fee_lamports,trade.total_lamports,trade.created_at])?;
+    audit::append(&tx, &account_id, &trade).map_err(audit::api_error)?;
     tx.commit()?;
     Ok(trade)
 }

@@ -16,6 +16,7 @@ trap 'rm -f "$partial"' EXIT INT TERM
         trap '\''rm -rf "$snapshot_dir"'\'' EXIT INT TERM
         sqlite3 "$MTL_DATABASE" ".timeout 10000" ".backup $snapshot_dir/snapshot.sqlite3"
         test "$(sqlite3 "$snapshot_dir/snapshot.sqlite3" "PRAGMA integrity_check;")" = ok
+        mtl-audit check-db "$snapshot_dir/snapshot.sqlite3" >&2
         tar -C "$snapshot_dir" -czf - snapshot.sqlite3
     ' > "$partial"
 )

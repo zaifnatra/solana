@@ -533,7 +533,7 @@ async fn migration_retains_legacy_funds_and_creates_existing_account_profiles() 
         .unwrap()
         .query_row("PRAGMA user_version", [], |r| r.get(0))
         .unwrap();
-    assert_eq!(version, 2);
+    assert_eq!(version, 3);
 }
 
 #[tokio::test]

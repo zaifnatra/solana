@@ -27,6 +27,9 @@ services:
       - "127.0.0.1:5173:5173"
     environment:
       MTL_API_PROXY: http://api:8080
+      VITE_TRADING_MODE: "${VITE_TRADING_MODE:-paper}"
+      VITE_SOLANA_RPC_URL: "${VITE_SOLANA_RPC_URL:-https://api.devnet.solana.com}"
+      VITE_DEVNET_MANIFEST_URL: "${VITE_DEVNET_MANIFEST_URL:-/devnet-markets.json}"
     depends_on:
       - api
 volumes:

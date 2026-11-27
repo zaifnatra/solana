@@ -1,4 +1,4 @@
-.PHONY: dev dev-down up down logs check-web check-service image backup verify-backup
+.PHONY: dev dev-down up down logs check-web check-service check-devnet image backup verify-backup
 
 dev:
 	docker compose -f compose.dev.yaml up --build
@@ -17,6 +17,10 @@ logs:
 
 check-web:
 	cd web && npm ci && npm run lint && npm run build
+
+check-devnet:
+	cd web && npm run test:devnet
+	python3 -m unittest discover -s deploy -p 'test_devnet.py'
 
 check-service:
 	cd service && cargo fmt --check && cargo clippy --locked --all-targets -- -D warnings && cargo test --locked

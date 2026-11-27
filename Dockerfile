@@ -7,6 +7,10 @@ WORKDIR /app/web
 COPY web/package*.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 COPY web/ ./
+# Public client configuration only. RPC secrets must never be VITE_* values.
+ARG VITE_TRADING_MODE=paper
+ARG VITE_SOLANA_RPC_URL=https://api.devnet.solana.com
+ARG VITE_DEVNET_MANIFEST_URL=/devnet-markets.json
 RUN npm run build
 
 FROM ${RUST_IMAGE} AS rust-build
@@ -46,6 +50,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
     && groupadd --gid 10001 mtl && useradd --uid 10001 --gid mtl --no-create-home mtl \
     && mkdir /data && chown mtl:mtl /data
 COPY --from=rust-build /app/service/target/release/mtl-service /usr/local/bin/mtl-service
+COPY --from=rust-build /app/service/target/release/mtl-audit /usr/local/bin/mtl-audit
 COPY --from=web-build /app/web/dist /app/web
 ENV MTL_BIND=0.0.0.0:8080 MTL_DATABASE=/data/mtl.sqlite3 MTL_WEB_DIR=/app/web
 USER 10001:10001

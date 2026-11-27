@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import GlassDialog from './GlassDialog';
+import { DEVNET_ENABLED } from '../devnet/config';
 import './Header.css';
 
-export default function Header({ title }) {
+export default function Header({ title, devnet = false }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [help, setHelp] = useState(false);
   const button = useRef(null);
@@ -24,10 +25,12 @@ export default function Header({ title }) {
       <header className="app-header">
         <div>
           <h1 className="header-title">{title || 'Social Hub'}</h1>
-          <span className="paper-indicator">PAPER MODE · PRACTICE FUNDS</span>
+          <span className="paper-indicator">
+            {devnet ? 'SOLANA DEVNET · TEST FUNDS' : 'PAPER MODE · PRACTICE FUNDS'}
+          </span>
         </div>
         <div className="header-actions">
-          <WalletMultiButton />
+          {!devnet && <WalletMultiButton />}
           <div className="profile-menu-container">
             <button
               ref={button}
@@ -50,6 +53,15 @@ export default function Header({ title }) {
             </button>
             {showDropdown && (
               <div className="profile-dropdown" id="profile-dropdown">
+                {DEVNET_ENABLED && (
+                  <Link
+                    to="/devnet"
+                    className="dropdown-item"
+                    onClick={() => setShowDropdown(false)}
+                  >
+                    Devnet trading
+                  </Link>
+                )}
                 <Link
                   to="/profile"
                   className="dropdown-item"
@@ -76,20 +88,34 @@ export default function Header({ title }) {
       </header>
       {help && (
         <GlassDialog title="How MTL works" onClose={() => setHelp(false)}>
-          <p>Discover artists, follow their releases, and build a paper collection.</p>
-          <p className="service-muted">
-            Paper accounts start with 100 practice SOL. Prices follow a bonding curve: buying
-            increases supply and price; selling reverses it. Every quote includes the 5% fee and an
-            exact price limit.
+          <p>
+            {devnet
+              ? 'Buy and sell registered artist tokens with your wallet on Solana devnet.'
+              : 'Discover artists, follow their releases, and build a paper collection.'}
           </p>
-          <p className="service-muted">
-            All trades here use simulated funds. The wallet picker connects your Solana wallet for
-            future on-chain features; it does not fund this paper account or send transactions.
-          </p>
-          <p className="service-muted">
-            Your paper account access is stored in this browser. Clearing site data loses access. An
-            interrupted trade can be checked again without submitting a duplicate.
-          </p>
+          {devnet ? (
+            <p className="service-muted">
+              Only test funds are used. Preview the exact trade limit, network fee and token-account
+              rent, then approve in your wallet. A saved transaction can be checked after a reload.
+              Paper accounts are separate.
+            </p>
+          ) : (
+            <>
+              <p className="service-muted">
+                Paper accounts start with 100 practice SOL. Prices follow a bonding curve: buying
+                increases supply and price; selling reverses it. Every quote includes the 5% fee and
+                an exact price limit.
+              </p>
+              <p className="service-muted">
+                All paper trades use simulated funds. The wallet picker does not fund this paper
+                account or send transactions. Devnet trading, when enabled, is separate.
+              </p>
+              <p className="service-muted">
+                Your paper account access is stored in this browser. Clearing site data loses
+                access. An interrupted trade can be checked again without submitting a duplicate.
+              </p>
+            </>
+          )}
           <button className="service-button" onClick={() => setHelp(false)}>
             Got it
           </button>

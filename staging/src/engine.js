@@ -1,7 +1,7 @@
 // Staging client for the on-chain engine. Runs in the browser (UI) and in Node (scenario CLI).
 // It reads everything from the IDL that `anchor build` writes to engine/target/idl/.
 import * as anchor from '@coral-xyz/anchor';
-import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram } from '@solana/web3.js';
+import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, SYSVAR_CLOCK_PUBKEY } from '@solana/web3.js';
 
 // Node 22 CJS interop misses some named exports (BN). Fall back to the default export.
 const { BN, Program, AnchorProvider, utils } = anchor.BN ? anchor : anchor.default;
@@ -29,7 +29,7 @@ export function createStaging({ idl, rpcUrl, operator = Keypair.generate() }) {
     const connection = new Connection(rpcUrl, 'confirmed');
     const provider = new AnchorProvider(connection, keypairWallet(operator), { commitment: 'confirmed' });
     const program = new Program(idl, provider);
-    const buyIx = idl.instructions.find((ix) => ix.name === 'buy_token');
+    const buyIx = idl.instructions.find((ix) => ix.name === 'buy_token_bounded');
     const platform = new PublicKey(
         buyIx.accounts.find((a) => a.name === 'platform_wallet').address ?? PLATFORM_WALLET,
     );
@@ -47,9 +47,16 @@ export function createStaging({ idl, rpcUrl, operator = Keypair.generate() }) {
     // Reads compute units and lamport deltas from the confirmed transaction.
     async function measure(action, amount, artist, run) {
         const { profile } = pdas(artist);
+        let sig;
         try {
-            const sig = await run();
-            const tx = await connection.getTransaction(sig, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 });
+            sig = await run();
+            let tx;
+            for (let attempt = 0; attempt < 20 && !tx; attempt++) {
+                tx = await connection.getTransaction(sig, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 });
+                if (!tx) await new Promise((resolve) => setTimeout(resolve, 100));
+            }
+            if (!tx) throw new Error('Confirmed transaction details unavailable; inspect the signature before retrying');
+            if (tx.meta.err) throw new Error(`Transaction failed: ${JSON.stringify(tx.meta.err)}`);
             const keys = tx.transaction.message.staticAccountKeys ?? tx.transaction.message.accountKeys;
             const delta = (pk) => {
                 const i = keys.findIndex((k) => k.equals(pk));
@@ -57,7 +64,7 @@ export function createStaging({ idl, rpcUrl, operator = Keypair.generate() }) {
             };
             return { ok: true, action, amount, sig, cu: tx.meta.computeUnitsConsumed, reserveDelta: delta(profile), feeDelta: delta(platform) };
         } catch (e) {
-            return { ok: false, action, amount, error: e.error?.errorCode?.code ?? e.message };
+            return { ok: false, action, amount, ...(sig ? { sig } : {}), error: e.error?.errorCode?.code ?? e.message };
         }
     }
 
@@ -69,19 +76,49 @@ export function createStaging({ idl, rpcUrl, operator = Keypair.generate() }) {
                 .signers([artistKp]).rpc();
         });
 
-    const trade = (action) => (userKp, artist, amount) =>
-        measure(action, amount, artist, () => {
+    async function chainTime() {
+        const clock = await connection.getAccountInfo(SYSVAR_CLOCK_PUBKEY);
+        if (!clock || clock.data.length < 40) throw new Error('Chain clock is unavailable');
+        return Number(clock.data.readBigInt64LE(32));
+    }
+
+    async function quote(action, artist, amount) {
+        if (action !== 'buy' && action !== 'sell') throw new Error('Unknown trade side');
+        const { profile } = pdas(artist);
+        const [account, timestamp] = await Promise.all([
+            program.account.artistProfile.fetch(profile), chainTime(),
+        ]);
+        const supply = BigInt(account.tokenSupply.toString());
+        const quantity = BigInt(amount);
+        const next = action === 'buy' ? supply + quantity : supply - quantity;
+        if (next < 0n) throw new Error('Insufficient curve supply');
+        const gross = 1_000_000n * (action === 'buy' ? next * next - supply * supply : supply * supply - next * next) / 2n;
+        const fee = gross * 500n / 10_000n;
+        return {
+            grossLamports: gross.toString(), feeLamports: fee.toString(),
+            totalLamports: (action === 'buy' ? gross + fee : gross - fee).toString(),
+            expiresAt: timestamp + 30,
+        };
+    }
+
+    // Optional quote/account overrides are used by local-validator adversarial tests.
+    // The program, not this preview, enforces price limits, expiry, and ownership.
+    const trade = (action) => (userKp, artist, amount, options = {}) =>
+        measure(action, amount, artist, async () => {
             const { profile, mint } = pdas(artist);
             const accounts = {
                 artistProfile: profile,
                 tokenMint: mint,
                 userTokenAccount: utils.token.associatedAddress({ mint, owner: userKp.publicKey }),
                 platformWallet: platform,
+                ...options.accounts,
             };
+            const limit = options.quote ?? await quote(action, artist, amount);
+            const args = [new BN(String(amount)), new BN(limit.totalLamports), new BN(limit.expiresAt)];
             const method = action === 'buy'
-                ? program.methods.buyToken(new BN(amount)).accountsPartial({ buyer: userKp.publicKey, ...accounts })
-                : program.methods.sellToken(new BN(amount)).accountsPartial({ seller: userKp.publicKey, ...accounts });
-            return method.signers([userKp]).rpc();
+                ? program.methods.buyTokenBounded(...args).accountsPartial({ buyer: userKp.publicKey, ...accounts })
+                : program.methods.sellTokenBounded(...args).accountsPartial({ seller: userKp.publicKey, ...accounts });
+            return method.signers([userKp]).rpc({ skipPreflight: options.skipPreflight ?? false });
         });
 
     async function holdings(artist, owner) {
@@ -111,7 +148,7 @@ export function createStaging({ idl, rpcUrl, operator = Keypair.generate() }) {
 
     return {
         connection, program, operator, platform, pdas, fund, register, programDeployed,
-        buy: trade('buy'), sell: trade('sell'), holdings, state,
+        buy: trade('buy'), sell: trade('sell'), quote, chainTime, holdings, state,
     };
 }
 
@@ -167,7 +204,15 @@ export async function runScenario(s, { trades = 50, buyers = 3, maxAmount = 20, 
         if (row.ok) held[u] += sell ? -amount : amount;
         step(row);
     }
-    for (const [u, kp] of users.entries()) if (held[u] > 0) step(await s.sell(kp, artist.publicKey, held[u]));
+    for (const [u, kp] of users.entries()) {
+        while (held[u] > 0) {
+            const amount = Math.min(held[u], 10_000);
+            const row = await s.sell(kp, artist.publicKey, amount);
+            step(row);
+            if (!row.ok) break;
+            held[u] -= amount;
+        }
+    }
 
     const end = await s.state(artist.publicKey);
     const checks = {

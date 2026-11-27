@@ -27,6 +27,7 @@ bounds keep response amounts within JavaScript's safe integer range.
 | POST | `/quotes` | Bearer | Fee-inclusive quote, valid for 30 seconds |
 | POST | `/orders` | Bearer | Atomically execute an order, return a receipt |
 | GET | `/orders` | Bearer | Your latest 100 fills, newest first |
+| GET | `/audit` | Bearer | Your paginated hash-linked receipt history |
 
 ## Create an account
 
@@ -246,3 +247,38 @@ If omitted, a new UUID is generated, so clients that need retry safety should al
 provide and retain a key. Only the owning account can publish. Demo profiles have
 no owner and cannot be claimed through this endpoint. The limit is 100 releases
 per artist. A release is an artist-authored update, not a blockchain transaction.
+
+## Audit export
+
+`GET /api/v1/audit?after=0` returns at most 500 receipts in chain order:
+
+```json
+{
+  "checkpoint": { "version": 1, "account_id": "<account-id>", "sequence": 501, "hash": "<64 lowercase hex>" },
+  "after": 0,
+  "entries": [{ "sequence": 1, "previous_hash": "<genesis hash>", "hash": "<entry hash>", "trade": "<receipt object as returned by POST /orders>" }],
+  "next_after": 500,
+  "has_more": true
+}
+```
+
+The example abbreviates the entries array and receipt object. Each `trade` is a
+full receipt with `id`, `symbol`, `side`, `quantity`, `gross_lamports`,
+`fee_lamports`, `total_lamports`, and `created_at`.
+
+Keep `through` equal to the first response's `checkpoint.sequence` and request
+`after=next_after&through=CHECKPOINT_SEQUENCE` until `has_more` is false. New trades
+can continue during this export. Store each response as one compact JSON line;
+pass the resulting file to `mtl-audit verify`. Starting an export after sequence
+zero is useful for browsing, but the offline verifier requires the complete
+prefix from genesis. An empty account returns one empty final page at sequence 0.
+
+The credential selects the account: clients cannot select another account ID.
+Missing/invalid credentials return 401; ranges outside `0 <= after <= through <=
+current head` return 422; detected integrity failures return a generic 500.
+Malformed query values return 400. Responses have `Cache-Control: no-store`.
+There is no public cross-account audit feed. Checkpoints and receipt exports
+contain private trading history; share them deliberately.
+
+See [verification and checkpoint retention](BLOCKCHAIN_COVERAGE.md#verify-your-history)
+for offline commands, the exact hash encoding, and limits on what verification proves.

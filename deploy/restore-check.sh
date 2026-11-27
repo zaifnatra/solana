@@ -34,4 +34,5 @@ until docker exec "$container" curl --fail --silent http://127.0.0.1:8080/readyz
     sleep 1
 done
 docker exec "$container" curl --fail --silent http://127.0.0.1:8080/api/v1/markets >/dev/null
-printf '%s\n' 'Restore check passed: archive integrity, accounting invariants, service startup, readiness, market API.'
+docker exec "$container" sh -eu -c 'mtl-audit check-db "$MTL_DATABASE"'
+printf '%s\n' 'Restore check passed: archive integrity, accounting invariants, audit journal, service startup, readiness, market API.'

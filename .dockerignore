@@ -14,3 +14,7 @@ staging
 docs/qa
 **/__pycache__/
 *.pyc
+
+# Local devnet build workspaces can contain deployment keypairs.
+deploy/devnet-state
+deploy/devnet.config.json

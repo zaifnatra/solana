@@ -27,6 +27,22 @@ the repository. See [Contributing](CONTRIBUTING.md) for the development workflow
 
 We built the first version at McHacks 13, and it won the MLH Solana challenge. We wanted a way for fans to back artists without turning art into a pump-and-dump. This repo is the cleaned-up version, and we work on it for fun.
 
+The [blockchain coverage map](docs/BLOCKCHAIN_COVERAGE.md) explains what the Anchor
+engine implements, what Solana supplies, and how the paper service exposes
+verifiable receipt history without claiming on-chain settlement.
+
+## Wallet-signed devnet trading
+
+An optional `/devnet` page prepares wallet-signed artist-token buys and sells using
+**test funds only**. Paper mode remains the default. The devnet path uses a separate
+verified market manifest and bounded contract instructions; it never converts paper
+balances into on-chain assets. See [devnet setup and architecture](docs/REAL_TRADING.md).
+
+This branch prepares the code and deployment workflow. Contract compilation and
+local-validator/devnet execution still need verification; no devnet deployment is
+included. Toolchain installation is on hold pending the owner's review of the
+[exact sources and installation scope](docs/TOOLCHAIN_INSTALL_REVIEW.md).
+
 ## How the engine works
 
 The engine is an Anchor program in `engine/`. Each artist has a profile account (a PDA) that holds the token supply and a SOL reserve, and controls the artist's token mint.
@@ -35,9 +51,9 @@ The engine is an Anchor program in `engine/`. Each artist has a profile account 
 flowchart LR
     A[Artist] -- register_artist --> P[("Artist profile PDA<br/>supply + SOL reserve")]
     P -. mint authority .-> M[Artist token mint]
-    S[Supporter] -- "buy_token(n): cost + 5% fee" --> P
+    S[Supporter] -- "buy_token_bounded(n, max, expiry): cost + 5% fee" --> P
     P -- "mint n tokens" --> S
-    S -- "sell_token(n): burn n tokens" --> P
+    S -- "sell_token_bounded(n, min, expiry): burn n tokens" --> P
     P -- "refund − 5% fee" --> S
     P -- "5% fee" --> F[Platform wallet]
 ```
@@ -46,6 +62,7 @@ flowchart LR
 - Buying `n` tokens costs the area under that line: `0.001 × ((s + n)² − s²) / 2` SOL. The cost goes into the reserve.
 - Selling refunds the same area, so the reserve always covers every token in circulation.
 - A 5% fee on each trade goes to a fixed platform wallet. The program rejects any other fee address.
+- Bounded buy/sell instructions enforce the signed fee-inclusive maximum/minimum and expiry on-chain. The old unbounded instruction names are not supported by this revision.
 
 The curve math is in `engine/programs/sol_proj/src/curve.rs`. It is plain Rust with unit tests, so you can change it without a validator.
 

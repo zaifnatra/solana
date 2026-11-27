@@ -6,6 +6,8 @@ import ProfilePage from './pages/ProfilePage';
 import FriendsPage from './pages/FriendsPage';
 import MyTokensPage from './pages/MyTokensPage';
 import ArtistPage from './pages/ArtistPage';
+import DevnetPage from './pages/DevnetPage';
+import { DEVNET_ENABLED } from './devnet/config';
 import TradingProvider from './state/TradingProvider';
 import TradeDialog from './components/TradeDialog';
 import { useTrading } from './state/TradingContext';
@@ -30,6 +32,7 @@ function AppRoutes() {
   return (
     <Routes key={token}>
       <Route path="/" element={<SearchPage />} />
+      {DEVNET_ENABLED && <Route path="/devnet" element={<DevnetPage />} />}
       <Route path="/artists/:symbol" element={<ArtistPage />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/friends" element={<FriendsPage />} />

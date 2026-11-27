@@ -4,9 +4,9 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 const baseURL = process.env.MTL_TEST_URL || 'http://127.0.0.1:8080';
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, ...(process.env.MTL_BROWSER_EXECUTABLE ? { executablePath: process.env.MTL_BROWSER_EXECUTABLE } : {}) });
 const errors = [];
-const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
 context.setDefaultTimeout(15000);
 context.setDefaultNavigationTimeout(30000);
 const page = await context.newPage();
@@ -224,7 +224,7 @@ try {
     await page.getByRole('heading', { name: 'First demo release', exact: true }).waitFor();
 
     // A separate browser account follows this artist and sees the creator's update.
-    const followerContext = await browser.newContext({ viewport: { width: 375, height: 812 } });
+    const followerContext = await browser.newContext({ viewport: { width: 375, height: 812 }, reducedMotion: 'reduce' });
     followerContext.setDefaultTimeout(15000);
     followerContext.setDefaultNavigationTimeout(30000);
     const follower = await followerContext.newPage();
@@ -253,7 +253,8 @@ try {
     console.error('Browser smoke failed at:', activePage.url());
     await mkdir('test-results', { recursive: true });
     await activePage.screenshot({ path: 'test-results/browser-smoke-failure.png', fullPage: true }).catch(() => {});
-    await writeFile('test-results/browser-smoke-failure.txt', await activePage.locator('body').innerText()).catch(() => {});
+    const body = await activePage.locator('body').innerText().catch(() => 'Page unavailable; see original error.');
+    await writeFile('test-results/browser-smoke-failure.txt', body).catch(() => {});
     throw error;
 } finally {
     await browser.close();

@@ -183,7 +183,8 @@ connections; tighten their allowlists if you restrict the accepted media provide
 
 Use the SQLite online backup API, not a raw copy of a live database/WAL file. The
 script creates a consistent archive, checks SQLite integrity/foreign keys, and
-reconciles account cash, market reserves, holdings, and fees. It does not stop the
+reconciles account cash, market reserves, holdings, and fees. Schema-3 images also
+run the Rust audit verifier against the completed SQLite snapshot before archiving it. It does not stop the
 service. The host needs Python 3 for verification; sqlite3 is included in the image.
 
 Local Compose:
@@ -203,11 +204,12 @@ export MTL_ENV_FILE=deploy/production.env
 ```
 
 `restore-check.sh` verifies the archive, restores into a new temporary Docker volume,
-starts the configured image with **no network exposure**, checks readiness and market
-reads, then removes only its temporary container/volume. This proves that the backup
+starts the configured image with **no network exposure**, checks readiness, market
+reads, and audit consistency, then removes only its temporary container/volume. This proves that the backup
 can start the service; it does not replace a full disaster-recovery exercise.
 
-To verify only the archive without Docker:
+To check archive structure and accounting without Docker (this Python check does
+not verify SHA-256 chains; use `mtl-audit check-db` on the extracted snapshot for that):
 
 ```sh
 python3 deploy/verify_backup.py /path/to/backup.tgz
@@ -251,3 +253,23 @@ container startup, browser flows, an online backup, and an isolated restore chec
 Docker was not installed in the authoring environment, so local shell/YAML/backup
 verification is distinct from executing the container stack. A successful CI run or
 host acceptance run is required before treating the image as deployment-verified.
+
+## Schema 3 audit migration
+
+Use the deployment scripts from the same revision as the image. The new runtime
+includes both `mtl-service` and the read-only `mtl-audit` CLI. Backup/restore scripts
+in this revision require that CLI; they are not compatible with older images.
+Take a verified backup using the currently deployed revision **before** upgrading.
+Startup migrates versions 1/2 to 3 in one transaction, baselines old receipts, and
+checks all receipt chains. Historical discrepancies before this baseline cannot
+be authenticated. Existing paper balances, holdings, and receipt IDs are preserved.
+
+An older service rejects schema 3. To roll back, use the earlier image and its
+compatible pre-upgrade backup in a new volume. Do not decrement `user_version` or
+remove audit tables to force a downgrade. An integrity failure prevents startup;
+restore a verified backup and compare independently retained checkpoints rather
+than rewriting the chain to silence the failure.
+
+The Docker image definition includes the audit CLI, but this worktree has not been
+published or deployed. Run the existing container CI/restore acceptance workflow
+before rollout. The local Rust tests exercise the CLI directly.

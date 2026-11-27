@@ -13,3 +13,8 @@ node_modules
 **/__pycache__/
 *.pyc
 /web/test-results/
+
+# Local devnet identities and generated market manifest.
+/deploy/devnet-state/
+/web/public/devnet-markets.json
+/deploy/devnet.config.json
